@@ -5,7 +5,7 @@ var Schema = {};
 
 Schema.createSchema = function(mongoose){
     var NoticeSchema = mongoose.Schema({
-        notice_id: {type: String, index: {unique: true}},
+        notice_id: {type: Number, index: {unique: true}},
         title: {type: String, required: true},
         content: {type: String, required: true},
         createdAt: {type: Date, default: new Date() },
@@ -22,5 +22,5 @@ Schema.createSchema = function(mongoose){
         increment: 1
     });
 
-    var Notice = connectioon.model('NoticeModel', board);
+    var Notice = connectioon.model('NoticeModel', NoticeSchema);
 }

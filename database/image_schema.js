@@ -5,9 +5,9 @@ var Schema = {};
 
 Schema.createSchema = function(mongoose){
     var ImageSchema = mongoose.Schema({
-        img_id: {type: String, index: {unique: true}},
+        img_id: {type: Number, index: {unique: true}},
         image: {type: String, required: true},
-        post_id: {type: String, required: true}
+        post_id: {type: Number, required: true}
     });
 
         //AutoIncrease를 실현시키기 위해서 사용하는 코드
@@ -19,6 +19,6 @@ Schema.createSchema = function(mongoose){
             increment: 1
         });
     
-        var Image = connectioon.model('ImageModel', board);
+        var Image = connectioon.model('ImageModel', ImageSchema);
 
 }

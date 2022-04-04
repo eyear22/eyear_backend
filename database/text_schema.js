@@ -5,9 +5,9 @@ var Schema = {};
 
 Schema.createSchema = function(mongoose){
     var TextSchema = mongoose.Schema({
-        text_id: {type: String, index: {unique: true}},
+        text_id: {type: Number, index: {unique: true}},
         text: {type: String, required: true},
-        vid: {type: String, required: true}
+        vid: {type: Number, required: true}
     });
 
     //AutoIncrease를 실현시키기 위해서 사용하는 코드
@@ -19,5 +19,5 @@ Schema.createSchema = function(mongoose){
         increment: 1
     });
 
-    var Text = connectioon.model('TextModel', board);
+    var Text = connectioon.model('TextModel', TextSchema);
 }

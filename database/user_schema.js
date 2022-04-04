@@ -1,5 +1,4 @@
 // 개인(유저) 데이터베이스 스키마 정의
-
 var Schema = {};
 
 
@@ -15,16 +14,5 @@ Schema.createSchema = function(mongoose){
         email: {type:email, required: trye, unique: true}
     });
 
-    //AutoIncrease를 실현시키기 위해서 사용하는 코드
-
-    UserSchema.plugin(autoIncrement.plugin, {
-        model : 'UserModel',
-        fiel: 'user_id',
-        startAt : 1,
-        increment: 1
-    });
-
-    var User = connectioon.model('UserModel', board);
-
-
+ 
 }

@@ -24,5 +24,5 @@ Schema.createSchema = function(mongoose){
         increment: 1
     });
 
-    var Post = connectioon.model('PostModel', board);
+    var Post = connectioon.model('PostModel', PostSchema);
 }

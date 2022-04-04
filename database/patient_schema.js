@@ -1,5 +1,4 @@
 // 환자 데이터베이스 스키마 정의
-var autoIncrement = require('mongoose-auto-increment');
 var Schema = {};
 
 
@@ -13,15 +12,4 @@ Schema.createSchema = function(mongoose){
         hos_id: {type: String, required: true},
         user_id: {type: String}
     });
-
-    //AutoIncrease를 실현시키기 위해서 사용하는 코드
-
-    PatientSchema.plugin(autoIncrement.plugin, {
-        model : 'PatientModel',
-        fiel: 'pat_id',
-        startAt : 1,
-        increment: 1
-    });
-
-    var Patient = connectioon.model('PatientModel', board);
 }
