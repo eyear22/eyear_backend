@@ -37,7 +37,7 @@ const upload = multer({
 
 // 비디오를 서버에 저장
 router.post('/upload', upload.array('file'), async (req, res, next) => {
-  if (!req.files) return;
+  if (!req) return;
   try {
     await req.files.map((file) => {
       // 여러 파일이 들어오므로 map() 사용
@@ -46,13 +46,13 @@ router.post('/upload', upload.array('file'), async (req, res, next) => {
         // 동영상
         Video.create({
           video: file.path,
-          post_id: 1,
+          post_id: req.body.post_id,
         });
       } else if (type === 'png' || 'jpeg' || 'jpg') {
         // 이미지
         Image.create({
           image: file.path,
-          post_id: 1,
+          post_id: req.body.post_id,
         });
       }
       return type;
