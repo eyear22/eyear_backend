@@ -2,6 +2,8 @@ const express = require('express');
 const multer = require('multer');
 const path = require('path');
 const fs = require('fs');
+const Video = require('../database/video_schema');
+const Image = require('../database/image_schema');
 
 // 파일 서버 업로드 api
 try {
@@ -33,10 +35,33 @@ const upload = multer({
   // limits: {fileSize: 5 * 1024 * 1024},
 });
 
-router.post('/upload', upload.array('file'), (req, res) => {
-  // 비디오를 서버에 저장
-  console.log(req.files);
-  res.send('ok');
+// 비디오를 서버에 저장
+router.post('/upload', upload.array('file'), async (req, res, next) => {
+  if (!req.files) return;
+  try {
+    await req.files.map((file) => {
+      // 여러 파일이 들어오므로 map() 사용
+      const type = file.mimetype.substr(file.mimetype.lastIndexOf('/') + 1); // 파일 type
+      if (type === 'mp4') {
+        // 동영상
+        Video.create({
+          video: file.path,
+          post_id: 1,
+        });
+      } else if (type === 'png' || 'jpeg' || 'jpg') {
+        // 이미지
+        Image.create({
+          image: file.path,
+          post_id: 1,
+        });
+      }
+      return type;
+    });
+    res.status(200).send('ok');
+  } catch (err) {
+    console.log(err);
+    next(err);
+  }
 });
 
 module.exports = router;
