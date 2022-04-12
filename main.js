@@ -2,6 +2,7 @@ const express = require('express'); // express 임포트
 const cors = require('cors');
 const bodyParser = require('body-parser');
 const path = require('path');
+const multer = require('multer');
 
 const dbconnect = require('./models');
 const mainRouter = require('./routes/main');
@@ -13,6 +14,7 @@ const videoRouter = require('./routes/video');
 
 const app = express(); // app생성
 const port = 5000;
+const fs = require('fs');
 
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: false }));
@@ -32,6 +34,7 @@ app.use('/join', joinRouter);
 app.use('/user', userRouter);
 app.use('/business', businessRouter);
 app.use('/notice', noticeRouter);
+
 app.use('/video', videoRouter);
 
 // 프론트에서 uploads 폴더 접근 가능하게함
