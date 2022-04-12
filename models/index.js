@@ -1,5 +1,7 @@
 const mongoose = require('mongoose');
-require('dotenv').config();
+const dotenv = require('dotenv');
+
+dotenv.config();
 
 const dbconnect = () => {
   mongoose
@@ -15,6 +17,7 @@ const dbconnect = () => {
     )
     .then(() => console.log('MongoDB conected'))
     .catch((err) => {
+      console.log('DB 연결 실패');
       console.log(err);
     });
 };
