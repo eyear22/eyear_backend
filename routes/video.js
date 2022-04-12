@@ -35,7 +35,7 @@ const upload = multer({
   // limits: {fileSize: 5 * 1024 * 1024},
 });
 
-// 비디오를 서버에 저장
+// 비디오, 이미지 DB 저장
 router.post('/upload', upload.array('file'), async (req, res, next) => {
   if (!req) return;
   try {
@@ -60,6 +60,17 @@ router.post('/upload', upload.array('file'), async (req, res, next) => {
     res.status(200).send('ok');
   } catch (err) {
     console.log(err);
+    next(err);
+  }
+});
+
+// 비디오 path 보내기
+router.post('/getVideoDetail', async (req, res, next) => {
+  try {
+    const video = await Video.findOne({ post_id: req.body.post_id });
+    res.json({ success: true, video });
+  } catch (err) {
+    console.error(err);
     next(err);
   }
 });

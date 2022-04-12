@@ -1,6 +1,7 @@
 const express = require('express'); // express 임포트
 const cors = require('cors');
 const bodyParser = require('body-parser');
+const path = require('path');
 
 const dbconnect = require('./models');
 const mainRouter = require('./routes/main');
@@ -32,3 +33,6 @@ app.use('/user', userRouter);
 app.use('/business', businessRouter);
 app.use('/notice', noticeRouter);
 app.use('/video', videoRouter);
+
+// 프론트에서 uploads 폴더 접근 가능하게함
+app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
