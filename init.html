@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>실시간 화상 통화</title>
+  </head>
+  <body>
+      <div id="welcome">
+            <button id="roomBtn">방만들기</button>  
+      </div>
+<script>
+
+const joinBtn = document.getElementById('roomBtn');
+
+let roomId;
+
+function generateRandomString() {
+  const characters =
+    'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+  let result = Math.random().toString(36).substring(2, 36);
+  return result;
+}
+
+async function handleRoomSubmit(event) {
+  event.preventDefault();
+  roomId = generateRandomString();
+  location.href=`call/room?roomID=${roomId}&business=1`;
+}
+
+roomBtn.addEventListener('click', handleRoomSubmit)
+
+</script>
+  </body>
+</html>

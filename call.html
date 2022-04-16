@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>실시간 화상 통화</title>
+  </head>
+  <body>
+      <div id="call">
+         <div id="myStream">
+            <video id="myFace" autoplay playsline width="400" height="400"></video>
+            <button id="mute">음소거</button>  
+            <button id="camera">카메라 끄기</button>
+            <video id="peerFace" autoplay playsline width="400" height="400"></video>
+        </div>
+      </div>
+      <button id="linkCopy">링크 복사</button>
+      <ul id="roomList">12</ul>
+
+
+    <script src="/socket.io/socket.io.js"></script>
+<script>
+
+const socket = io();
+const call = document.getElementById('call');
+const myFace = document.getElementById('myFace');
+
+const muteBtn = document.getElementById('mute');
+const cameraBtn = document.getElementById('camera');
+const copyBtn = document.getElementById('linkCopy');
+
+let myStream;
+let muted = true;
+let cameraOff = false;
+let roomId;
+let myPeerConnection;
+
+function generateRandomString() {
+  const characters =
+    'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+  let result = Math.random().toString(36).substring(2, 36);
+  return result;
+}
+
+function handleMuteClick() {
+  myStream
+    .getAudioTracks()
+    .forEach((track) => (track.enabled = !track.enabled));
+
+  if (!muted) {
+    muteBtn.innerText = '음소거해제';
+    muted = true;
+  } else {
+    muteBtn.innerText = '음소거';
+    muted = false;
+  }
+}
+
+function handleCameraClick() {
+  myStream
+    .getVideoTracks()
+    .forEach((track) => (track.enabled = !track.enabled));
+
+  if (cameraOff) {
+    cameraBtn.innerText = '카메라 끄기';
+    cameraOff = false;
+  } else {
+    cameraBtn.innerText = '카메라 켜기';
+    cameraOff = true;
+  }
+}
+
+async function getMedia() {
+  try {
+    myStream = await navigator.mediaDevices.getUserMedia({
+      audio: true,
+      video: true,
+    });
+    myFace.srcObject = myStream;
+  } catch (e) {
+    console.log(e);
+  }
+}
+
+async function initCall() {
+  await getMedia();
+  makeConnection();
+}
+
+init();
+
+async function init() {
+  const query = document.location.href.split("?");
+  const query01 = query[1].split("&")[0];
+  roomId = query01.split("=")[1];
+  await initCall();
+  socket.emit('join_room', roomId);
+}
+
+muteBtn.addEventListener('click', handleMuteClick);
+cameraBtn.addEventListener('click', handleCameraClick);
+
+socket.on("welcome", async () => {
+    //참여할수있도록 offer 생성 
+  const offer = await myPeerConnection.createOffer();
+  myPeerConnection.setLocalDescription(offer); // 만든 offer을 통해서 연결 생성
+  console.log("sent the offer");
+  socket.emit("offer", offer, roomId); //send offer
+});
+
+//PeerB 
+socket.on("offer", async (offer) => {
+  console.log("received the offer");
+  myPeerConnection.setRemoteDescription(offer);
+  const answer = await myPeerConnection.createAnswer();
+  myPeerConnection.setLocalDescription(answer);
+  socket.emit("answer", answer, roomId);
+  console.log('sent the answer');
+});
+
+socket.on("answer", (answer) => {
+  console.log("received the answer");
+  myPeerConnection.setRemoteDescription(answer);
+});
+
+socket.on("ice", (ice) => {
+  console.log("received candidate");
+  myPeerConnection.addIceCandidate(ice);
+});
+
+
+function handleIce(data) {
+  console.log("sent candidate");
+  socket.emit("ice", data.candidate, roomId);
+}
+
+function handleAddStream(data) {
+  const peerFace = document.getElementById("peerFace");
+  peerFace.srcObject = data.stream;
+}
+
+function makeConnection() {
+  myPeerConnection = new RTCPeerConnection(); //1.각각의 브라우저에서 연결 만들기
+  myPeerConnection.addEventListener("icecandidate", handleIce);
+  myPeerConnection.addEventListener("addstream", handleAddStream);
+  //2. 양쪽 브라우저의 데이터 stream을 연결에 넣음
+  myStream
+    .getTracks()
+    .forEach((track) => myPeerConnection.addTrack(track, myStream));
+}
+
+function handlelinkCopy(){
+    const dummy = document.createElement("input");
+    const text = location.href;
+    const text2 = text.split('&')[0];
+    const copyurl = text2 + '&business=0';    
+
+    document.body.appendChild(dummy);
+    dummy.value = copyurl;
+    dummy.select();
+    document.execCommand("copy");
+    document.body.removeChild(dummy);
+    document.execCommand("copy");
+}
+
+copyBtn.addEventListener('click', handlelinkCopy);
+
+
+
+</script>
+  </body>
+</html>
