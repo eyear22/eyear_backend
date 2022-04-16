@@ -11,6 +11,7 @@ const businessRouter = require('./routes/business');
 const noticeRouter = require('./routes/notice');
 const videoRouter = require('./routes/video');
 
+
 const app = express(); // app생성
 const port = 5000;
 
