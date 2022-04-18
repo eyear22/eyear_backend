@@ -55,11 +55,11 @@ router.post('/upload', upload.array('file'), async (req, res, next) => {
         // 오디오 추출
         // 저장할 파일 이름 및 형식 지정
         const name = path.basename(file.originalname, "mp4");
-        const to_audio_file = "uploads/"+ name + Date.now() +".mp3";
+        const to_audio_file = "uploads/"+ name + Date.now() +".wav";
          new ffmpeg(file.path,  (err, file)=>{ 
             if (!err) {
                 //#2. 동영상에서 이미지를 추출하기 (비동기 방식)
-                file.fnExtractSoundToMP3(to_audio_file, (error, files)=>{
+                file.fnExtractSoundToWav(to_audio_file, (error, files)=>{
                     if(!error) {
                       console.log('finish audio!');
                     }else{
@@ -97,39 +97,6 @@ router.post('/getVideoDetail', async (req, res, next) => {
   }
 });
 
-/*
 
-convert(file, file.originalname + '.mp3', function(err){
-  if(!err){
-    console.log('conversion complete');
-  }else{
-    console.log("에러발생");
-  }
-});
-function convert(input, output, callback) {
-  ffmpeg(input)
-      .output(output)
-      .on('end', function() {                    
-          console.log('conversion ended');
-          callback(null);
-      }).on('error', function(err){
-          console.log('error: ', err.code, err.msg);
-          callback(err);
-      }).run();
-}
-
-
-const targetMP4File = 'upload/nextlevel1650094319041.mp4'  //영상 파일
-const to_audio_file = './sample.mp3'  //오디오 파일
-
-new ffmpeg(targetMP4File,  (err, video)=>{  
-    if (!err) {
-        //#2. 동영상에서 이미지를 추출하기 (비동기 방식)
-        video.fnExtractSoundToMP3(to_audio_file, (error, files)=>{
-            if(!error) console.log('finish audio!')
-        });       
-    }
-})
-*/
 
 module.exports = router;
