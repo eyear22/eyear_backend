@@ -15,10 +15,14 @@ const client = new Speech.SpeechClient();
     // 일단 테스트용으로 실행중입니다.
     uri: gcsUri
   };
+
   const config = {
     encoding: 'mp3',
-    sampleRateHertz: 16000,
-    languageCode: 'ko-KR'
+    sampleRateHertz: 1600,
+    languageCode: 'ko-KR',
+    speechContexts: [{
+      phrases: ["수직적 부분 집합입니다"]
+    }]
   };
 
   const request = {
