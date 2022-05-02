@@ -55,11 +55,11 @@ router.post('/upload', upload.array('file'), async (req, res, next) => {
         // 오디오 추출
         // 저장할 파일 이름 및 형식 지정
         const name = path.basename(file.originalname, "mp4");
-        const to_audio_file = "uploads/"+ name + Date.now() +".wav";
+        const to_audio_file = "uploads/"+ name + Date.now() +".mp3";
          new ffmpeg(file.path,  (err, file)=>{ 
             if (!err) {
-                //#2. 동영상에서 이미지를 추출하기 (비동기 방식)
-                file.fnExtractSoundToWav(to_audio_file, (error, files)=>{
+                //#2. 동영상에서 음성 추출 추출하기 (비동기 방식)
+                file.fnExtractSoundToMP3(to_audio_file, (error, files)=>{
                     if(!error) {
                       console.log('finish audio!');
                     }else{

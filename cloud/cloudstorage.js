@@ -6,7 +6,7 @@ const Speech = require('@google-cloud/speech');
 // Creates a client
 const client = new Speech.SpeechClient();
   // The path to the remote LINEAR16 file
-  const gcsUri = 'gs://eyear_speech/nextlevel.1650285151213.mp3';
+  const gcsUri = 'gs://eyear_speech/개념1.mp3';
   async function quickstart() {
   // The audio file's encoding, sample rate in hertz, and BCP-47 language code
   const audio = {
@@ -17,7 +17,7 @@ const client = new Speech.SpeechClient();
   };
   const config = {
     encoding: 'mp3',
-    sampleRateHertz: 44100,
+    sampleRateHertz: 16000,
     languageCode: 'ko-KR'
   };
 
