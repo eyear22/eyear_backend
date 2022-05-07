@@ -8,6 +8,10 @@ const Text = require('../database/text_schema');
 //const ffmpeg = require('fluent-ffmpeg');
 const ffmpeg = require('ffmpeg')
 
+const {format} = require('util');
+const {Storage} = require('@google-cloud/storage');
+const storage = new Storage();
+
 // 파일 서버 업로드 api
 try {
   fs.readdirSync('uploads');
@@ -18,6 +22,45 @@ try {
 }
 
 const router = express.Router();
+
+//GCS에 업로드 하는 Multer
+const upload = multer({
+  storage: multer.memoryStorage(),
+  limits: {
+    //fileSize: 5 * 1024 * 1024, // no larger than 5mb, you can change as needed.
+  },
+});
+
+const bucket = storage.bucket(process.env.GCLOUD_STORAGE_BUCKET);
+
+// Process the file upload and upload to Google Cloud Storage.
+router.post('/upload', upload.single('file'), (req, res, next) => {
+  if (!req.file) {
+    res.status(400).send('No file uploaded.');
+    return;
+  }
+
+  // Create a new blob in the bucket and upload the file data.
+  const blob = bucket.file(req.file.originalname);
+  console.log(req.file.originalname);
+  const blobStream = blob.createWriteStream();
+
+  blobStream.on('error', err => {
+    next(err);
+  });
+  blobStream.on('finish', () => {
+    // The public URL can be used to directly access the file via HTTP.
+    const publicUrl = format(
+      `https://storage.googleapis.com/${bucket.name}/${blob.name}`
+    );
+    res.status(200).send(publicUrl);
+  });
+
+  blobStream.end(req.file.buffer);
+});
+
+// 비디오, 이미지 DB 저장
+/*
 
 const upload = multer({
   storage: multer.diskStorage({
@@ -38,7 +81,6 @@ const upload = multer({
   // limits: {fileSize: 5 * 1024 * 1024},
 });
 
-// 비디오, 이미지 DB 저장
 router.post('/upload', upload.array('file'), async (req, res, next) => {
   if (!req) return;
   try {
@@ -85,6 +127,8 @@ router.post('/upload', upload.array('file'), async (req, res, next) => {
     next(err);
   }
 });
+
+*/
 
 // 비디오 path 보내기
 router.post('/getVideoDetail', async (req, res, next) => {
