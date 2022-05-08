@@ -34,30 +34,128 @@ const upload = multer({
 const bucket = storage.bucket(process.env.GCLOUD_STORAGE_BUCKET);
 
 // Process the file upload and upload to Google Cloud Storage.
-router.post('/upload', upload.single('file'), (req, res, next) => {
-  if (!req.file) {
+router.post('/upload', upload.array('file'), async (req, res, next) => {
+console.log('post 실행');
+  if (!req) {
     res.status(400).send('No file uploaded.');
+    console.log('에러 발생');
     return;
   }
+  try{
+    await req.files.map((file) =>{
+      console.log('받아와지나?');
+      const type = file.mimetype.substr(file.mimetype.lastIndexOf('/') + 1); // 파일 type
+      // Create a new blob in the bucket and upload the file data.
+      // !!! file.originalname을 삭제하고 다른 걸로 대체할 방법 찾아보기.
+    const blob = bucket.file(file.originalname + Date.now() +"."+ type);
+    console.log(file.originalname);
+    const blobStream = blob.createWriteStream();
+    //blob.name = Date.now();
 
-  // Create a new blob in the bucket and upload the file data.
-  const blob = bucket.file(req.file.originalname);
-  console.log(req.file.originalname);
-  const blobStream = blob.createWriteStream();
+    console.log("저장명" + blob.name);
+    blobStream.on('error', err => {
+      console.log("보내는데에 오류발생!");
+      next(err);
+    });
+    blobStream.on('finish', () => {
+      console.log('잘 보내졌어');
+      // The public URL can be used to directly access the file via HTTP.
+      const publicUrl = format(
+        `https://storage.googleapis.com/${bucket.name}/${blob.name}`
+      );
+    });
 
-  blobStream.on('error', err => {
+    blobStream.end(file.buffer);
+  });
+    
+  res.status(200).send('ok');
+  }catch(error){
+    console.log(err);
     next(err);
-  });
-  blobStream.on('finish', () => {
-    // The public URL can be used to directly access the file via HTTP.
-    const publicUrl = format(
-      `https://storage.googleapis.com/${bucket.name}/${blob.name}`
-    );
-    res.status(200).send(publicUrl);
-  });
+  }
+ 
+   //return type;
+ });
+ 
+  /*
+ await req.files.map((file) =>{
+      const type = file.mimetype.substr(file.mimetype.lastIndexOf('/') + 1); // 파일 type
+        // 영상 업로드 후 DB에 저장할 정보 생성
+        if(type === 'mp4'){
+          //영상일 경우
+          const v = Video.create({
+            video: file.path,
+            post_id: req.body.post_id
+          });
+  
+          // 영상의 경우 음성을 추출해서 따로 저장
+          const to_audio_file = file.originalname + Date.now() +".mp3";
+          const voice = new ffmpeg(file,  (err, file)=>{ 
+             if (!err) {
+                 //#2. 동영상에서 음성 추출 추출하기 (비동기 방식)
+                 
+              console.log('음성 추출');
+                 file.fnExtractSoundToMP3(to_audio_file, (error, files)=>{
+                     if(!error) {
+                       console.log('finish audio!');
+                     }else{
+                       console.log(error.message);
+                     }
+                 });
+             }
+         })
+         
+         //3. 추출한 음성 GCS에 전송
+         const mp3blob = bucket.file(voice);
+         const mp3blobStream = mp3blob.createWriteStream();
+        
+         mp3blobStream.on('finish', () =>{
+           const publicUrl = format(
+            `https://storage.googleapis.com/${bucket.name}/voice/${blob.name}`
+           );
+           res.status(200).send(publicUrl);
+         });
+         mp3blobStream.end(req.file.buffer);
+        }else if (type === 'png' || 'jpeg' || 'jpg') {
+          // 이미지
+          Image.create({
+            image: file.path,
+            post_id: req.body.post_id,
+          });
+        }
+        
+      // Create a new blob in the bucket and upload the file data.
+      const blob = bucket.file(req.file.originalname);
+      console.log(req.file.originalname);
+      const blobStream = blob.createWriteStream();
+      blob.name += Date.now();
 
-  blobStream.end(req.file.buffer);
-});
+      blobStream.on('error', err => {
+        next(err);
+      });
+      blobStream.on('finish', () => {
+        // The public URL can be used to directly access the file via HTTP.
+        const publicUrl = format(
+          `https://storage.googleapis.com/${bucket.name}/${blob.name}`
+        );
+        res.status(200).send(publicUrl);
+      });
+
+      blobStream.end(req.file.buffer);
+
+
+      return type;
+    });
+    res.status(200).send('ok');
+    
+    console.log('완료');
+  }catch(err){
+    console.log(err);
+    next(err);
+  }
+
+  */
+
 
 // 비디오, 이미지 DB 저장
 /*
