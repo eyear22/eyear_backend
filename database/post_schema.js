@@ -1,5 +1,6 @@
 // 게시글 데이터베이스 스키마 정의
 const mongoose = require('mongoose');
+const autoIncrement = require('mongoose-auto-increment');
 
 const { Schema } = mongoose;
 
@@ -32,6 +33,13 @@ const postSchema = new Schema({
     type: Boolean,
     required: true,
   },
+});
+
+postSchema.plugin(autoIncrement.plugin, {
+  model: 'Post',
+  field: 'post_id',
+  startAt: 1,
+  increment: 1,
 });
 
 module.exports = mongoose.model('Post', postSchema);

@@ -1,6 +1,5 @@
 // 개인(유저) 데이터베이스 스키마 정의
 const mongoose = require('mongoose');
-var Schema = {};
 
 const { Schema } = mongoose;
 const userSchema = new Schema({
@@ -34,8 +33,8 @@ const userSchema = new Schema({
     default: new Date(),
   },
   email: {
-    type: email,
-    required: trye,
+    type: String,
+    required: true,
     unique: true,
   },
 });
