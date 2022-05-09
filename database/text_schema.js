@@ -2,33 +2,30 @@
 const mongoose = require('mongoose');
 var autoIncrement = require('mongoose-auto-increment');
 
-const {Schema} = mongoose;
+const { Schema } = mongoose;
 autoIncrement.initialize(mongoose.connection);
 
-
 const textSchema = new Schema({
-    text_id: {
-        type: Number, 
-        index: {unique: true}
-    },
-    text: {
-        type: String, 
-        required: true
-    },
-    vid: {
-        type: Number, 
-        required: true
-    },
-
-
+  text_id: {
+    type: Number,
+    unique: true,
+  },
+  text: {
+    type: String,
+    required: true,
+  },
+  vid: {
+    type: Number,
+    required: true,
+  },
 });
 
 // AutoIncrease를 실현시키기 위해서 사용하는 코드
 textSchema.plugin(autoIncrement.plugin, {
-    model: 'Text',
-    field: 'text_id',
-    startAt: 1,
-    increment: 1,
+  model: 'Text',
+  field: 'text_id',
+  startAt: 1,
+  increment: 1,
 });
 
 module.exports = mongoose.model('Text', textSchema);
