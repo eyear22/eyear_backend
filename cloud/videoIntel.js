@@ -16,7 +16,7 @@ async function analyzeVideoTranscript() {
         languageCode: 'ko-KR',
       enableAutomaticPunctuation: true, //자동 구두점 활성화
       speechContexts: [{
-          phrases: ["한율 조금 저렴하거든요", "박막례입니다"]
+          phrases: ["한율 조금 저렴하거든요", "박막례입니다", "팁이야"]
         }],
     },
   };
@@ -41,12 +41,15 @@ async function analyzeVideoTranscript() {
     // Each alternative is a different possible transcription
     // and has its own confidence score.
     for (const alternative of speechTranscription.alternatives) {
-      console.log('Alternative level information:');
-      console.log(`Transcript: ${alternative.transcript}`);
-      console.log(`Confidence: ${alternative.confidence}`);
+      //console.log('Alternative level information:');
+      //console.log(`Transcript: ${alternative.transcript}`);
+      //console.log(`Confidence: ${alternative.confidence}`);
 
-      
-      console.log('Word level information:');
+      // 한 문장씩 끊기 -> 구두점 인식을 못 하므로 문장 단위로 끊기 실패
+      // 단어 개수를 정해서 그만큼 끊어서 인식 -> for 구문
+     
+  
+      /*
       for (const wordInfo of alternative.words) {
         const word = wordInfo.word;
         const start_time =
@@ -55,8 +58,10 @@ async function analyzeVideoTranscript() {
           wordInfo.endTime.seconds + wordInfo.endTime.nanos * 1e-9;
         console.log('\t' + start_time + 's - ' + end_time + 's: ' + word);
       }
-      
+      */
 
+
+      
     }
   }
 }
