@@ -5,15 +5,6 @@ const fs = require('fs');
 const Video = require('../database/video_schema');
 const Image = require('../database/image_schema');
 
-// 파일 서버 업로드 api
-try {
-  fs.readdirSync('uploads');
-} catch (error) {
-  console.error('uploads 폴더가 없어 uploads 폴더를 생성합니다.');
-  // 폴더 생성
-  fs.mkdirSync('uploads');
-}
-
 const router = express.Router();
 
 const upload = multer({
