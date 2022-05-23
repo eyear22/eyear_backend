@@ -6,9 +6,16 @@ const { intervalToDuration } = require('date-fns');
 // Creates a client
 const client = new videoIntelligence.VideoIntelligenceServiceClient();
 
-/**
- * TODO(developer): Uncomment the following line before running the sample.
- */
+
+// 파일 서버 업로드 api
+try {
+    fs.readdirSync('subtitle');
+  } catch (error) {
+    console.error('subtitle 폴더가 없어 subtitle 폴더를 생성합니다.');
+    // 폴더 생성
+    fs.mkdirSync('subtitle');
+  }
+
 const gcsUri = 'gs://swu_eyear/할머니2.mp4';
 
 async function analyzeVideoTranscript() {
