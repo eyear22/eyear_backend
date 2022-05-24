@@ -4,10 +4,6 @@ const mongoose = require('mongoose');
 const { Schema } = mongoose;
 
 const patientSchema = new Schema({
-  pat_id: {
-    type: String,
-    unique: true,
-  },
   pat_number: {
     type: String,
     unique: true,
@@ -26,11 +22,12 @@ const patientSchema = new Schema({
     required: true,
   },
   hos_id: {
-    type: String,
-    required: true,
+    type: Schema.ObjectId,
+    ref: 'Hospital',
   },
   user_id: {
-    type: String,
+    type: [Schema.ObjectId],
+    ref: 'User',
   },
 });
 
