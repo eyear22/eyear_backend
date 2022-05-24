@@ -1,43 +1,99 @@
-// Google Cloud Storage 파일을 사용해 긴 오디오 파일 텍스트로 변환
 
-// Imports the Google Cloud client library
-const Speech = require('@google-cloud/speech');
+// Imports the Google Cloud Video Intelligence library
+const videoIntelligence = require('@google-cloud/video-intelligence');
+const fs = require('fs');
+const { intervalToDuration } = require('date-fns');
 
 // Creates a client
-const client = new Speech.SpeechClient();
-  // The path to the remote LINEAR16 file
-  const gcsUri = 'gs://eyear_speech/개념1.mp3';
-  async function quickstart() {
-  // The audio file's encoding, sample rate in hertz, and BCP-47 language code
-  const audio = {
-    //uri: gcsUri,
-    // 원래 cloud에 음성 파일을 업로드 후 그걸 불러와서 하는 형식.
-    // 일단 테스트용으로 실행중입니다.
-    uri: gcsUri
-  };
+const client = new videoIntelligence.VideoIntelligenceServiceClient();
 
-  const config = {
-    encoding: 'mp3',
-    sampleRateHertz: 1600,
-    languageCode: 'ko-KR',
-    speechContexts: [{
-      phrases: ["수직적 부분 집합입니다"]
-    }]
+
+// 파일 서버 업로드 api
+try {
+    fs.readdirSync('subtitle');
+  } catch (error) {
+    console.error('subtitle 폴더가 없어 subtitle 폴더를 생성합니다.');
+    // 폴더 생성
+    fs.mkdirSync('subtitle');
+  }
+
+const gcsUri = 'gs://swu_eyear/할머니2.mp4';
+
+async function analyzeVideoTranscript() {
+  const videoContext = {
+    speechTranscriptionConfig: {
+        sampleRateHertz: 1600,
+        languageCode: 'ko-KR',
+      enableAutomaticPunctuation: true, //자동 구두점 활성화
+      speechContexts: [{
+          phrases: ["한율 조금 저렴하거든요", "박막례입니다", "팁이야"]
+        }],
+    },
   };
 
   const request = {
-    audio: audio,
-    config: config,
+    inputUri: gcsUri,
+    features: ['SPEECH_TRANSCRIPTION'],
+    videoContext: videoContext,
+    // 이게 되는 건지 확인 불가!
   };
 
-// Detects speech in the audio file. This creates a recognition job that you
-// can wait for now, or get its result later.
-const [operation] = await client.longRunningRecognize(request);
-// Get a Promise representation of the final result of the job
-const [response] = await operation.promise();
-const transcription = response.results
-  .map(result => result.alternatives[0].transcript)
-  .join('\n');
-console.log(`Transcription: ${transcription}`);
+  const [operation] = await client.annotateVideo(request);
+  console.log('Waiting for operation to complete...');
+  const [operationResult] = await operation.promise();
+  // There is only one annotation_result since only
+  // one video is processed.
+  const annotationResults = operationResult.annotationResults[0];
+
+  // 파이썬 파일에 보내기
+  // annotationResults.speechTranscriptions
+
+  const allSentence = annotationResults.speechTranscriptions
+  .map((speechTranscription) => {
+    return speechTranscription.alternatives
+    .map((alternative) => {
+      const words = alternative.words ?? [];
+
+      const groupOfTens = words.reduce((group, word, arr) => {
+        return (
+          // 글자 10개씩 끊어서 문장 만들기
+          (arr % 10
+            ? group[group.length - 1].push(word)
+            : group.push([word])) && group
+        );
+      }, []);
+
+      return groupOfTens.map((group) => {
+        const stratOffset = parseInt(group[0].startTime.seconds ?? 0) + (group[0].startTime.nanos ?? 0) / 1000000000;
+
+        const endOffset = parseInt(group[group.length - 1].endTime.seconds ?? 0) + (group[group.length -1].endTime.nanos ?? 0) /1000000000;
+        
+        return {
+          startTime: stratOffset,
+          endTime: endOffset,
+          sentence: group.map((word) => word.word).join(" "),
+        };
+      });
+    }).flat();
+  }).flat();
+
+  const subtitleContent = allSentence
+  .map((sentence, index) => {
+    const startTime = intervalToDuration({
+      start: 0,
+      end: sentence.startTime * 1000,
+    });
+    const endTime = intervalToDuration({
+      start: 0,
+      end: sentence.endTime * 1000,
+    });
+
+    return `${index  +  1}\n${startTime.hours}:${startTime.minutes}:${startTime.seconds},000 --> ${endTime.hours}:${endTime.minutes}:${endTime.seconds},000\n${sentence.sentence}`;
+  }).join("\n\n");
+  const subtitlePath = `../subtitle/subtitle.vtt`;
+  await  fs.writeFile(subtitlePath,  subtitleContent, function(error) { //function(error) 추가해야 함
+    console.log('write end!');
+    });
 }
-quickstart();
+
+analyzeVideoTranscript();

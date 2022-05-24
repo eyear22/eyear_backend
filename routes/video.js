@@ -4,6 +4,8 @@ const path = require('path');
 const fs = require('fs');
 const Video = require('../database/video_schema');
 const Image = require('../database/image_schema');
+const {Storage} = require('@google-cloud/storage');
+const storage = new Storage();
 const Text = require('../database/text_schema');
 //const ffmpeg = require('fluent-ffmpeg');
 const ffmpeg = require('ffmpeg');
@@ -33,6 +35,7 @@ const upload = multer({
 
 const bucket = storage.bucket(process.env.GCLOUD_STORAGE_BUCKET);
 
+// 비디오, 이미지 DB 저장
 // Process the file upload and upload to Google Cloud Storage.
 router.post('/upload', upload.array('file'), async (req, res, next) => {
   console.log('post 실행');
@@ -44,6 +47,11 @@ router.post('/upload', upload.array('file'), async (req, res, next) => {
   try {
     await req.files.map((file) => {
       const type = file.mimetype.substr(file.mimetype.lastIndexOf('/') + 1); // 파일 type
+      const blob = bucket.file(Date.now() +"."+ type);
+      const blobStream = blob.createWriteStream();
+
+      blobStream.on('error', err => {
+        console.log("보내는데에 오류발생!");
       // Create a new blob in the bucket and upload the file data.
       // !!! file.originalname을 삭제하고 다른 걸로 대체할 방법 찾아보기.
       const blob = bucket.file(Date.now() + '.' + type);
@@ -60,25 +68,24 @@ router.post('/upload', upload.array('file'), async (req, res, next) => {
         // The public URL can be used to directly access the file via HTTP.
         const publicUrl = `https://storage.googleapis.com/${bucket.name}/${blob.name}`;
       });
-
+        
       // 업로드 실행
       blobStream.end(file.buffer);
 
-      /*
-    if(type === 'mp4'){
-          //영상일 경우
-          const v = Video.create({
-            //video: file.path,
-            //post_id: req.body.post_id
-          });
-    }else if (type === 'png' || 'jpeg' || 'jpg') {
-      // 이미지
-      Image.create({
-        //image: file.path,
-        //post_id: req.body.post_id,
-      });
-    }
-    */
+      if (type === 'mp4') {
+        // 동영상
+        Video.create({
+          video: `gs://${bucket.name}//${blob.name}`,
+          post_id: req.body.post_id,
+        });
+      } else if (type === 'png' || 'jpeg' || 'jpg') {
+        // 이미지
+        Image.create({
+          video: `gs://${bucket.name}/${blob.name}`,
+          post_id: req.body.post_id,
+        });
+      }
+      return type;
     });
 
     res.status(200).send('ok');
@@ -86,8 +93,6 @@ router.post('/upload', upload.array('file'), async (req, res, next) => {
     console.log(err);
     next(err);
   }
-
-  //return type;
 });
 
 // 비디오 path 보내기
