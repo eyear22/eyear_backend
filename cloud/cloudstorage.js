@@ -44,6 +44,9 @@ async function analyzeVideoTranscript() {
   // one video is processed.
   const annotationResults = operationResult.annotationResults[0];
 
+  // 파이썬 파일에 보내기
+  // annotationResults.speechTranscriptions
+
   const allSentence = annotationResults.speechTranscriptions
   .map((speechTranscription) => {
     return speechTranscription.alternatives

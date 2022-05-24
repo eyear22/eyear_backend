@@ -6,6 +6,8 @@ const Video = require('../database/video_schema');
 const Image = require('../database/image_schema');
 const Post = require('../database/post_schema');
 const User = require('../database/user_schema');
+const {Storage} = require('@google-cloud/storage');
+const storage = new Storage();
 const router = express.Router();
 
 router.get('/receive', (req, res) => {
@@ -21,6 +23,7 @@ router.get('/detail/:postid', (req, res) => {
 });
 
 router.get('/post', (req, res) => {
+  console.log('불러오기!');
   res.sendFile(path.join(__dirname, '..', 'upload.html'));
 });
 
@@ -68,7 +71,6 @@ router.post('/post', upload.array('many'), async (req, res, next) => {
 
       console.log("저장명" + blob.name);
       blobStream.on('error', err => {
-        console.log("보내는데에 오류발생!");
         next(err);
       });
       blobStream.on('finish', () => {
