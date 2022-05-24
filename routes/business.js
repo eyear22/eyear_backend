@@ -6,6 +6,7 @@ const Video = require('../database/video_schema');
 const Image = require('../database/image_schema');
 const Post = require('../database/post_schema');
 const User = require('../database/user_schema');
+const Patient = require('../database/patient_schema');
 const router = express.Router();
 
 router.get('/receive', (req, res) => {
@@ -98,6 +99,18 @@ router.post('/post', upload.array('many'), async (req, res, next) => {
     res.status(200).send('ok');
   } catch (err) {
     console.log(err);
+    next(err);
+  }
+});
+
+router.get('/:hos_id/patientList', async (req, res, next) => {
+  if (!req) return;
+  try {
+    const patientList = await Patient.find({
+      hos_id: req.params.hos_id,
+    }).populate('hos_id');
+    res.json(patientList);
+  } catch (err) {
     next(err);
   }
 });
