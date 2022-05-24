@@ -28,32 +28,15 @@ router.get('/manage', (req, res) => {
   res.send('기관 환자 관리 페이지');
 });
 
-// 파일 서버 업로드 api
-try {
-  fs.readdirSync('uploads');
-} catch (error) {
-  console.error('uploads 폴더가 없어 uploads 폴더를 생성합니다.');
-  // 폴더 생성
-  fs.mkdirSync('uploads');
-}
-
+//GCS에 업로드 하는 Multer
 const upload = multer({
-  storage: multer.diskStorage({
-    // 저장하는 곳을 지정
-    destination(req, file, done) {
-      done(null, 'uploads/');
-    },
-    // 저장할 파일 이름 지정
-    filename(req, file, done) {
-      console.log(file.originalname);
-      const ext = path.extname(file.originalname);
-      // 파일명이 겹치는 것을 막기 위해 Date.now 사용
-      done(null, path.basename(file.originalname, ext) + Date.now() + ext);
-    },
-  }),
-  // 파일 크기를 5MB로 제한
-  // limits: {fileSize: 5 * 1024 * 1024},
+  storage: multer.memoryStorage(),
+  limits: {
+    //fileSize: 5 * 1024 * 1024, // no larger than 5mb, you can change as needed.
+  },
 });
+
+const bucket = storage.bucket(process.env.GCLOUD_STORAGE_BUCKET);
 
 async function findUser(username) {
   try {
@@ -79,16 +62,33 @@ router.post('/post', upload.array('many'), async (req, res, next) => {
     await req.files.map((file) => {
       // 여러 파일이 들어오므로 map() 사용
       const type = file.mimetype.substr(file.mimetype.lastIndexOf('/') + 1); // 파일 type
+      const blob = bucket.file(Date.now() +"."+ type);
+      console.log(file.originalname);
+      const blobStream = blob.createWriteStream();
+
+      console.log("저장명" + blob.name);
+      blobStream.on('error', err => {
+        console.log("보내는데에 오류발생!");
+        next(err);
+      });
+      blobStream.on('finish', () => {
+        // The public URL can be used to directly access the file via HTTP.
+        const publicUrl = `https://storage.googleapis.com/${bucket.name}/${blob.name}`;
+      });
+  
+      // 업로드 실행
+      blobStream.end(file.buffer);
+      
       if (type === 'mp4') {
         // 동영상
         Video.create({
-          video: file.path,
+          video: `gs://${bucket.name}//${blob.name}`,
           post_id: post.post_id,
         });
       } else if (type === 'png' || 'jpeg' || 'jpg') {
         // 이미지
         Image.create({
-          image: file.path,
+          image: `gs://${bucket.name}//${blob.name}`,
           post_id: post.post_id,
         });
       }
