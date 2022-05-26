@@ -65,7 +65,12 @@ router.post('/upload', upload.array('file'), async (req, res, next) => {
 // 비디오 path 보내기
 router.post('/getVideoDetail', async (req, res, next) => {
   try {
-    const video = await Video.findOne({ post_id: req.body.post_id });
+    //const video = await Video.findOne({ post_id: req.body.post_id });
+    // 비디오 path를 받아와서 보내기 - 임의로 gs 링크 지정
+    const gcsUri = 'gs://swu_eyear/할머니2.mp4';
+
+    // GCS에서 파일 받아서 video 객체를 받아오기
+
     res.json({ success: true, video });
   } catch (err) {
     console.error(err);

@@ -20,6 +20,7 @@ router.get('/send', (req, res) => {
 
 router.get('/detail/:postid', (req, res) => {
   res.send('기관 편지 상세 페이지');
+  
 });
 
 router.get('/post', (req, res) => {
