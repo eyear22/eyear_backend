@@ -11,8 +11,6 @@ const Text = require('../database/text_schema');
 const ffmpeg = require('ffmpeg');
 
 const { format } = require('util');
-const { Storage } = require('@google-cloud/storage');
-const storage = new Storage();
 
 // 파일 서버 업로드 api
 try {
@@ -89,7 +87,8 @@ router.post('/upload', upload.array('file'), async (req, res, next) => {
     });
 
     res.status(200).send('ok');
-  } catch (error) {
+  });
+}catch (error) {
     console.log(err);
     next(err);
   }
