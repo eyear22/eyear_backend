@@ -35,7 +35,6 @@ async function analyzeVideoTranscript() {
     inputUri: gcsUri,
     features: ['SPEECH_TRANSCRIPTION'],
     videoContext: videoContext,
-    // 이게 되는 건지 확인 불가!
   };
 
   const [operation] = await client.annotateVideo(request);
@@ -91,7 +90,7 @@ async function analyzeVideoTranscript() {
     return `${index  +  1}\n${startTime.hours}:${startTime.minutes}:${startTime.seconds},000 --> ${endTime.hours}:${endTime.minutes}:${endTime.seconds},000\n${sentence.sentence}`;
   }).join("\n\n");
   const subtitlePath = `../subtitle/subtitle.vtt`;
-  await  fs.writeFile(subtitlePath,  subtitleContent, function(error) { //function(error) 추가해야 함
+     await  fs.writeFile(subtitlePath,  subtitleContent, function(error) { //function(error) 추가해야 함
     console.log('write end!');
     });
 }
