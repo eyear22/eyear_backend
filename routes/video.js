@@ -124,10 +124,21 @@ router.get('/getVideoDetail', (req, res, next) => {
     
     downloadFile().catch(console.error);
 
+    // 파일 내용 읽어오기
+    /*
+fs.readFile(destFileName, 'base64', function(err, data) {
+      res.json({ success: true, data});
+  });
+    */
     
-    const video = fs.readFile(destFileName);
+      
+    var videoFile = fs.readFileSync(destFileName);
 
-    res.json({ success: true, video});
+    // Convert the video data to a Buffer and base64 encode it.
+    var encoded = new Buffer(videoFile).toString('base64');
+    
+    res.json({ success: true, encoded});
+
   } catch (err) {
     console.error(err);
     next(err);
