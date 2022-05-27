@@ -50,11 +50,14 @@ router.post('/post', upload.array('many'), async (req, res, next) => {
       title: req.body.title,
       content: req.body.content,
       from: req.body.pat_id,
-      to: (await User.findOne({ username: username }))._id;
+      to: (await User.findOne({ username: req.body.receiver }))._id,
       check: false,
     });
 
-    if(req.files){
+    
+    console.log(req.files);
+
+    if(req.files.length != 0){
 
     await req.files.map((file) => {
       // 여러 파일이 들어오므로 map() 사용

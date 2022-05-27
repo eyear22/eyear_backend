@@ -95,47 +95,35 @@ router.post('/upload', upload.array('file'), async (req, res, next) => {
 });
 
 // 비디오 path 보내기
-router.get('/getVideoDetail', (req, res, next) => {
-  console.log('실행되냐?');
+router.get('/getPostDetail', (req, res, next) => {
+  // 이미지랑 영상 있는지 확인해서 path만 가져와서 보내주면 됨!!
+  // 글 내용에 들어가있는 모든 내용 불러오기
   try {
     //const video = await Video.findOne({ post_id: req.body.post_id });
-    // 비디오 path를 받아와서 보내기 - 임의로 gs 링크 지정
-    const gcsUri = 'gs://swu_eyear/할머니2.mp4';
+//     // 비디오 path를 받아와서 보내기 - 임의로 gs 링크 지정
+//     const gcsUri = 'gs://swu_eyear/할머니2.mp4';
 
     
-// The path to which the file should be downloaded
-    const bucketName = 'swu_eyear';
-    const fileName = '할머니2.mp4';
-    const destFileName = `./uploads/${fileName}`;
+// // The path to which the file should be downloaded
+//     const bucketName = 'swu_eyear';
+//     const fileName = '1653668844562.mp4';
+//     const destFileName = `./uploads/${fileName}`;
     
-    // GCS에서 파일 받아서 video 객체를 받아오기
-    async function downloadFile() {
-      const options = {
-        destination: destFileName,
-      };
+//     // GCS에서 파일 받아서 video 객체를 받아오기
+//     async function downloadFile() {
+//       const options = {
+//         destination: destFileName,
+//       };
     
-      // Downloads the file - 버킷에 있는 객체 파일을 로컬에 저장
-      await storage.bucket(bucketName).file(fileName).download(options);
+//       // Downloads the file - 버킷에 있는 객체 파일을 로컬에 저장
+//       await storage.bucket(bucketName).file(fileName).download(options);
     
-      console.log(
-        `gs://${bucketName}/${fileName} downloaded to ${destFileName}.`
-      );
-    }
+//       console.log(
+//         `gs://${bucketName}/${fileName} downloaded to ${destFileName}.`
+//       );
+//     }
     
-    downloadFile().catch(console.error);
-
-    // 파일 내용 읽어오기
-    /*
-fs.readFile(destFileName, 'base64', function(err, data) {
-      res.json({ success: true, data});
-  });
-    */
-    
-      
-    var videoFile = fs.readFileSync(destFileName);
-
-    // Convert the video data to a Buffer and base64 encode it.
-    var encoded = new Buffer(videoFile).toString('base64');
+//     downloadFile().catch(console.error);
     
     res.json({ success: true, encoded});
 
