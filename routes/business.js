@@ -43,16 +43,6 @@ const upload = multer({
 
 const bucket = storage.bucket(process.env.GCLOUD_STORAGE_BUCKET);
 
-async function findUser(username) {
-  try {
-    const user = await User.findOne({ username: username });
-    return user.user_id;
-  } catch (err) {
-    console.error(err);
-    next(err);
-  }
-}
-
 router.post('/post', upload.array('many'), async (req, res, next) => {
   if (!req) return;
   try {
@@ -60,9 +50,11 @@ router.post('/post', upload.array('many'), async (req, res, next) => {
       title: req.body.title,
       content: req.body.content,
       from: req.body.pat_id,
-      to: await findUser(req.body.receiver),
+      to: (await User.findOne({ username: username }))._id;
       check: false,
     });
+
+    if(req.files){
 
     await req.files.map((file) => {
       // 여러 파일이 들어오므로 map() 사용
@@ -98,7 +90,7 @@ router.post('/post', upload.array('many'), async (req, res, next) => {
       }
       return type;
     });
-
+}
     res.status(200).send('ok');
   } catch (err) {
     console.log(err);
