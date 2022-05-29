@@ -9,8 +9,6 @@ const Text = require('../database/text_schema');
 const ffmpeg = require('ffmpeg');
 
 const { format } = require('util');
-const { Storage } = require('@google-cloud/storage');
-const storage = new Storage();
 
 // 파일 서버 업로드 api
 try {
@@ -66,7 +64,9 @@ router.post('/upload', upload.array('file'), async (req, res, next) => {
           // The public URL can be used to directly access the file via HTTP.
           const publicUrl = `https://storage.googleapis.com/${bucket.name}/${blob.name}`;
         });
-
+    res.status(200).send('ok');
+  });
+}catch (error) {
         // 업로드 실행
         blobStream.end(file.buffer);
 
@@ -95,10 +95,38 @@ router.post('/upload', upload.array('file'), async (req, res, next) => {
 });
 
 // 비디오 path 보내기
-router.post('/getVideoDetail', async (req, res, next) => {
+router.get('/getVideoDetail', (req, res, next) => {
+  // 이미지랑 영상 있는지 확인해서 path만 가져와서 보내주면 됨!!
+  // 글 내용에 들어가있는 모든 내용 불러오기
   try {
-    const video = await Video.findOne({ post_id: req.body.post_id });
-    res.json({ success: true, video });
+    //const video = await Video.findOne({ post_id: req.body.post_id });
+//     // 비디오 path를 받아와서 보내기 - 임의로 gs 링크 지정
+//     const gcsUri = 'gs://swu_eyear/할머니2.mp4';
+
+    
+// // The path to which the file should be downloaded
+//     const bucketName = 'swu_eyear';
+//     const fileName = '1653668844562.mp4';
+//     const destFileName = `./uploads/${fileName}`;
+    
+//     // GCS에서 파일 받아서 video 객체를 받아오기
+//     async function downloadFile() {
+//       const options = {
+//         destination: destFileName,
+//       };
+    
+//       // Downloads the file - 버킷에 있는 객체 파일을 로컬에 저장
+//       await storage.bucket(bucketName).file(fileName).download(options);
+    
+//       console.log(
+//         `gs://${bucketName}/${fileName} downloaded to ${destFileName}.`
+//       );
+//     }
+    
+//     downloadFile().catch(console.error);
+    
+    res.json({ success: true, encoded});
+
   } catch (err) {
     console.error(err);
     next(err);

@@ -1,0 +1,116 @@
+const { spawn } = require('child_process');
+
+const cutRatio = 0.5; // 추출 키워드 저장 제한 비율
+const updateRatio = 0.7; // 키워드 업데이트 비율
+
+const Keyword = require('../database/keyword_schema');
+
+const text = '안녕 안녕 안녕 수영아 수영이는 잘 지내 수영이는 요즘 행복해';
+const user_id = '6278ad70fd7dc2d7d15a8f5c';
+const pat_id = '628cddbd3c6c4dc667b7e0d9';
+
+async function extract(text) {
+  const resultWords = [];
+  const resultRanks = [];
+  try {
+    const result = await spawn('python', ['extract.py', text]);
+
+    result.stdout.on('data', (data) => {
+      let keywords = data.toString('utf8');
+      keywords = keywords.slice(1, -3);
+
+      const regExp = /\(([^)]+)\)/;
+      const keywordsArray = keywords.split(regExp);
+
+      let i = 0;
+      keywordsArray.forEach((value, index) => {
+        if (index % 2 === 1) {
+          const temp = value.split(', ');
+          if (Number(temp[1]) > cutRatio) {
+            // 일정 비율 이하 키워드는 저장하지 않음
+
+            resultWords[i] = temp[0].slice(1, -1);
+            resultRanks[i] = Number(temp[1]);
+            console.log(resultWords[i]);
+            i += 1;
+          }
+        }
+      });
+    });
+    const extractResult = { resultWords, resultRanks };
+    return extractResult;
+  } catch (error) {
+    console.log(error);
+    throw error;
+  }
+}
+
+async function updateKeywords(keywords, user_id, pat_id) {
+  // 이전 키워드 불러오기
+  let preKeyword;
+  try {
+    preKeyword = await Keyword.findOne({
+      user_id: user_id,
+      pat_id: pat_id,
+    });
+  } catch (CastError) {
+    //이전 키워드가 없을 경우 == 처음 보내는 영상일 경우
+    Keyword.create({
+      user_id: user_id,
+      pat_id: pat_id,
+      words: keywords.resultWords,
+      rank: keywords.resultRanks,
+    });
+    return;
+  }
+
+  // 이전 키워드 rank 낮추기
+  const preRank = preKeyword.rank;
+  preRank.forEach((value, index) => {
+    preRank[index] = value * updateRatio;
+  });
+
+  const updateRanks = preRank.concat(keywords.resultRanks);
+  updateRanks.sort();
+  const updateWords = [];
+  updateRanks.forEach((value1, index1) => {
+    if (value1 > cutRatio) {
+      preRank.rank.forEach((value2, index2) => {
+        if (value1 === value2) {
+          updateWords[index1] = preKeyword.words[index2];
+        }
+      });
+
+      keywords.resultRanks.forEach((value3, index3) => {
+        if (value1 === value3) {
+          updateWords[index1] = keywords.resultwords[index3];
+        }
+      });
+    }
+  });
+
+  try {
+    const finish = await Keyword.updateOne(
+      {
+        user_id: user_id,
+        pat_id: pat_id,
+      },
+      { words: updateWords, rank: updateRanks }
+    );
+    return finish;
+  } catch (err) {
+    return err;
+  }
+}
+
+async function keyword(text, user_id, pat_id) {
+  const keywords = await extract(text);
+  return keywords;
+
+  //   const result = await updateKeywords(keywords, user_id, pat_id);
+  //   return result;
+}
+
+console.log(keyword(text, user_id, pat_id));
+extract(text);
+module.exports = keyword;
