@@ -4,10 +4,6 @@ const mongoose = require('mongoose');
 const { Schema } = mongoose;
 
 const hospitalSchema = new Schema({
-  hos_id: {
-    type: String,
-    unique: true,
-  },
   hid: {
     type: String,
     unique: true,

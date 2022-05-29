@@ -1,5 +1,6 @@
 // 공지사항 데이터베이스 스키마 정의
 const mongoose = require('mongoose');
+
 const { Schema } = mongoose;
 const autoIncrement = require('mongoose-auto-increment');
 
@@ -29,7 +30,7 @@ const noticeSchema = new Schema({
 });
 
 // AutoIncrease를 실현시키기 위해서 사용하는 코드
-imageSchema.plugin(autoIncrement.plugin, {
+noticeSchema.plugin(autoIncrement.plugin, {
   model: 'Notice',
   field: 'notice_id',
   startAt: 1,
