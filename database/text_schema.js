@@ -1,6 +1,7 @@
 // 자막 데이터베이스 스키마 정의
 const mongoose = require('mongoose');
-var autoIncrement = require('mongoose-auto-increment');
+
+const autoIncrement = require('mongoose-auto-increment');
 
 const { Schema } = mongoose;
 autoIncrement.initialize(mongoose.connection);

@@ -22,6 +22,7 @@ const hospitalSchema = new Schema({
     required: true,
   },
   hos_number: {
+    // 전화번호
     type: String,
     required: true,
   },

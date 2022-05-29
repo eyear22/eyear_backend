@@ -5,6 +5,7 @@ const { Schema } = mongoose;
 
 const patientSchema = new Schema({
   pat_number: {
+    // 환자 인증번호
     type: String,
     unique: true,
     required: true,
@@ -24,10 +25,6 @@ const patientSchema = new Schema({
   hos_id: {
     type: Schema.ObjectId,
     ref: 'Hospital',
-  },
-  user_id: {
-    type: [Schema.ObjectId],
-    ref: 'User',
   },
 });
 

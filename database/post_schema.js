@@ -22,11 +22,11 @@ const postSchema = new Schema({
     default: new Date(),
   },
   from: {
-    type: String,
+    type: Schema.ObjectId,
     required: true,
   },
   to: {
-    type: String,
+    type: Schema.ObjectId,
     required: true,
   },
   check: {

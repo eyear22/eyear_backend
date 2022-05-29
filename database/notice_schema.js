@@ -24,7 +24,8 @@ const noticeSchema = new Schema({
     default: new Date(),
   },
   hos_id: {
-    type: String,
+    type: Schema.ObjecId,
+    ref: 'Hospital',
     required: false,
   },
 });
