@@ -95,7 +95,7 @@ router.post('/upload', upload.array('file'), async (req, res, next) => {
 });
 
 // 비디오 path 보내기
-router.get('/getPostDetail', (req, res, next) => {
+router.get('/getVideoDetail', (req, res, next) => {
   // 이미지랑 영상 있는지 확인해서 path만 가져와서 보내주면 됨!!
   // 글 내용에 들어가있는 모든 내용 불러오기
   try {

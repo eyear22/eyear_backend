@@ -37,6 +37,10 @@ const userSchema = new Schema({
     required: true,
     unique: true,
   },
+  relationship: {
+    type: String,
+    required: true,
+  }
 });
 
 module.exports = mongoose.model('User', userSchema);
