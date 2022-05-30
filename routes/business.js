@@ -163,7 +163,7 @@ router.get('/:hos_id/patientList', async (req, res, next) => {
   try {
     const patientList = await Patient.find({
       hos_id: req.params.hos_id,
-    }).populate('hos_id');
+    });
     res.json(patientList);
   } catch (err) {
     next(err);
