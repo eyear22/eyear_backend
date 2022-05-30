@@ -26,6 +26,7 @@
     "ffmpeg": "^0.0.4",
     "fluent-ffmpeg": "^2.1.2",
     "fs": "^0.0.1-security",
+    "moment": "^2.29.3",
     "mongoose": "^6.2.9",
     "mongoose-auto-increment": "^5.0.1",
     "morgan": "^1.10.0",

@@ -13,6 +13,8 @@ const Patient = require('../database/patient_schema');
 const { json } = require('body-parser');
 const router = express.Router();
 
+const moment = require('moment');
+
 router.get('/receive', (req, res) => {
   res.send('기관 받은 편지 확인 페이지');
 });
@@ -71,6 +73,9 @@ router.get('/detail/:post_id', async (req, res, next) => {
       { relation: 1, _id: 0 }
     );
 
+      const date = PostDetail.createdAt;
+      const formatDate = date.getFullYear() + "-" + (date.getMonth() + 1) + "-" + date.getDate();
+
     const result = {
       detail: PostDetail,
       video: VideoUrl,
@@ -78,6 +83,7 @@ router.get('/detail/:post_id', async (req, res, next) => {
       to: to,
       from: from,
       relation: relation,
+      date: formatDate,
     };
 
     res.send(result);
@@ -111,6 +117,7 @@ router.post('/post', upload.array('many'), async (req, res, next) => {
     const post = await Post.create({
       title: req.body.title,
       content: req.body.content,
+      // createdAt: formatDate,
       from: req.body.pat_id,
       to: (await User.findOne({ username: req.body.receiver }))._id,
       check: false,
@@ -164,7 +171,17 @@ router.get('/:hos_id/patientList', async (req, res, next) => {
     const patientList = await Patient.find({
       hos_id: req.params.hos_id,
     });
-    res.json(patientList);
+
+    // 객체 생성
+    const patient = new Array();
+    const item = new Object();
+    for(var i=0; i<patientList.length; i++){
+        item.name = patientList[i].pat_name;
+        item.id = patientList[i]._id;
+        patient.push(item);
+    }
+
+    res.json(patient);
   } catch (err) {
     next(err);
   }
@@ -174,10 +191,22 @@ router.get('/:hos_id/patientList', async (req, res, next) => {
 router.get('/:pat_id/userList', async (req, res, next) => {
   if (!req) return;
   try {
-    const userList = await Relation.find({
+    const useridList = await Relation.find({
       pat_id: req.params.pat_id,
     });
-    res.json(userList);
+
+    const family = new Array();
+    const item = new Object();
+    for(var i = 0; i<useridList.length; i++){
+      const user = await User.findOne({
+        _id: useridList[i].user_id
+      });
+      item.id = user._id;
+      item.name = user.username;
+      family.push(item);
+    }
+        
+    res.json(family);
   } catch (err) {
     next(err);
   }
