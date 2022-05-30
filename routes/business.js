@@ -17,8 +17,6 @@ router.get('/receive', (req, res) => {
   res.send('기관 받은 편지 확인 페이지');
 });
 
-
-
 router.get('/send', (req, res) => {
   res.send('기관 보낸 편지 확인 페이지');
 });
@@ -27,35 +25,62 @@ router.get('/send', (req, res) => {
 router.get('/detail/:post_id', async (req, res, next) => {
   if (!req) return;
   try {
-    const PostDetail = await Post.findOne({
-      post_id: req.params.post_id,
-    },{}).populate('post_id');
+    const PostDetail = await Post.findOne(
+      {
+        post_id: req.params.post_id,
+      },
+      {}
+    ).populate('post_id');
 
-    const VideoUrl = await Video.find({
-      post_id: req.params.post_id,
-    }, {video: 1, _id:0, post_id: 0, vid:1}).populate('post_id');
+    const VideoUrl = await Video.find(
+      {
+        post_id: req.params.post_id,
+      },
+      { video: 1, _id: 0, post_id: 0, vid: 1 }
+    ).populate('post_id');
 
     // const sub = await Text.find({
     //   vid: VideoUrl.vid,
     // })
 
-    const ImageUrl = await Image.find({
-      post_id: req.params.post_id,
-    }, {image: 1, _id:0, post_id: 0}).populate('post_id');
+    const ImageUrl = await Image.find(
+      {
+        post_id: req.params.post_id,
+      },
+      { image: 1, _id: 0, post_id: 0 }
+    ).populate('post_id');
 
-    const to = await User.findOne({
-      _id: PostDetail.to,
-    }, {username: 1, _id: 0});
+    const to = await User.findOne(
+      {
+        _id: PostDetail.to,
+      },
+      { username: 1, _id: 0 }
+    );
 
-    const from = await Patient.findOne({
-      _id: PostDetail.from,
-    }, {pat_name: 1, _id: 0});
+    const from = await Patient.findOne(
+      {
+        _id: PostDetail.from,
+      },
+      { pat_name: 1, _id: 0 }
+    );
 
-    const relation = await Relation.findOne({
-      user_id: PostDetail.to,
-    },{relation:1, _id:0});
+    const relation = await Relation.findOne(
+      {
+        user_id: PostDetail.to,
+      },
+      { relation: 1, _id: 0 }
+    );
 
-    res.json(PostDetail + VideoUrl + ImageUrl+ to + from + relation);
+    const result = {
+      detail: PostDetail,
+      video: VideoUrl,
+      image: ImageUrl,
+      to: to,
+      from: from,
+      relation: relation,
+    };
+
+    res.send(result);
   } catch (err) {
     next(err);
   }
@@ -91,43 +116,41 @@ router.post('/post', upload.array('many'), async (req, res, next) => {
       check: false,
     });
 
+    if (req.files.length != 0) {
+      await req.files.map((file) => {
+        // 여러 파일이 들어오므로 map() 사용
+        const type = file.mimetype.substr(file.mimetype.lastIndexOf('/') + 1); // 파일 type
+        const blob = bucket.file(Date.now() + '.' + type);
+        console.log(file.originalname);
+        const blobStream = blob.createWriteStream();
 
-    if(req.files.length != 0){
-
-    await req.files.map((file) => {
-      // 여러 파일이 들어오므로 map() 사용
-      const type = file.mimetype.substr(file.mimetype.lastIndexOf('/') + 1); // 파일 type
-      const blob = bucket.file(Date.now() + '.' + type);
-      console.log(file.originalname);
-      const blobStream = blob.createWriteStream();
-
-      blobStream.on('error', (err) => {
-        next(err);
-      });
-      blobStream.on('finish', () => {
-        // The public URL can be used to directly access the file via HTTP.
-        const publicUrl = `https://storage.googleapis.com/${bucket.name}/${blob.name}`;
-      });
-
-      // 업로드 실행
-      blobStream.end(file.buffer);
-
-      if (type === 'mp4') {
-        // 동영상
-        Video.create({
-          video: `${blob.name}`,
-          post_id: post.post_id,
+        blobStream.on('error', (err) => {
+          next(err);
         });
-      } else if (type === 'png' || 'jpeg' || 'jpg') {
-        // 이미지
-        Image.create({
-          image: `${blob.name}`,
-          post_id: post.post_id,
+        blobStream.on('finish', () => {
+          // The public URL can be used to directly access the file via HTTP.
+          const publicUrl = `https://storage.googleapis.com/${bucket.name}/${blob.name}`;
         });
-      }
-      return type;
-    });
-}
+
+        // 업로드 실행
+        blobStream.end(file.buffer);
+
+        if (type === 'mp4') {
+          // 동영상
+          Video.create({
+            video: `${blob.name}`,
+            post_id: post.post_id,
+          });
+        } else if (type === 'png' || 'jpeg' || 'jpg') {
+          // 이미지
+          Image.create({
+            image: `${blob.name}`,
+            post_id: post.post_id,
+          });
+        }
+        return type;
+      });
+    }
     res.status(200).send('ok');
   } catch (err) {
     console.log(err);
