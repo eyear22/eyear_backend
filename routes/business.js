@@ -6,6 +6,7 @@ const Video = require('../database/video_schema');
 const Image = require('../database/image_schema');
 const Post = require('../database/post_schema');
 const User = require('../database/user_schema');
+const Relation = require('../database/relationship_schema');
 const { Storage } = require('@google-cloud/storage');
 const storage = new Storage();
 const Patient = require('../database/patient_schema');
@@ -32,10 +33,10 @@ router.get('/detail/:post_id', async (req, res, next) => {
 
     const VideoUrl = await Video.find({
       post_id: req.params.post_id,
-    }, {video: 1, _id:0, post_id: 0}).populate('post_id');
+    }, {video: 1, _id:0, post_id: 0, vid:1}).populate('post_id');
 
     // const sub = await Text.find({
-    //   _id: req.params.post_id,
+    //   vid: VideoUrl.vid,
     // })
 
     const ImageUrl = await Image.find({
@@ -44,14 +45,17 @@ router.get('/detail/:post_id', async (req, res, next) => {
 
     const to = await User.findOne({
       _id: PostDetail.to,
-    }, {username: 1, _id: 0, relationship:1});
+    }, {username: 1, _id: 0});
 
-    
-    // const from = await User.findOne({
-    //   _id: PostDetail.from,
-    // }, {username: 1, _id: 0});
+    const from = await Patient.findOne({
+      _id: PostDetail.from,
+    }, {pat_name: 1, _id: 0});
 
-    res.json(PostDetail + VideoUrl + ImageUrl+ to);
+    const relation = await Relation.findOne({
+      user_id: PostDetail.to,
+    },{relation:1, _id:0});
+
+    res.json(PostDetail + VideoUrl + ImageUrl+ to + from + relation);
   } catch (err) {
     next(err);
   }
@@ -87,8 +91,6 @@ router.post('/post', upload.array('many'), async (req, res, next) => {
       check: false,
     });
 
-    
-    console.log(req.files);
 
     if(req.files.length != 0){
 
@@ -99,7 +101,6 @@ router.post('/post', upload.array('many'), async (req, res, next) => {
       console.log(file.originalname);
       const blobStream = blob.createWriteStream();
 
-      console.log('저장명' + blob.name);
       blobStream.on('error', (err) => {
         next(err);
       });
@@ -146,10 +147,11 @@ router.get('/:hos_id/patientList', async (req, res, next) => {
   }
 });
 
+// 환자와 관련된 가족 리스트
 router.get('/:pat_id/userList', async (req, res, next) => {
   if (!req) return;
   try {
-    const userList = await User.find({
+    const userList = await Relation.find({
       pat_id: req.params.pat_id,
     });
     res.json(userList);

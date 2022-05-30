@@ -5,15 +5,15 @@ const { Schema } = mongoose;
 
 const relationshipSchema = new Schema({
   pat_id: {
-    type: Schema.Objectid,
+    type: Schema.ObjectId,
     ref: 'Patient',
   },
   hos_id: {
-    type: Schema.Objectid,
+    type: Schema.ObjectId,
     ref: 'Hospital',
   },
   user_id: {
-    type: Schema.Objectid,
+    type: Schema.ObjectId,
     ref: 'User',
   },
   relation: {

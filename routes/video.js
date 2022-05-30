@@ -8,6 +8,8 @@ const Text = require('../database/text_schema');
 //const ffmpeg = require('fluent-ffmpeg');
 const ffmpeg = require('ffmpeg');
 
+const { Storage } = require('@google-cloud/storage');
+const storage = new Storage();
 const { format } = require('util');
 
 // 파일 서버 업로드 api
@@ -46,15 +48,6 @@ router.post('/upload', upload.array('file'), async (req, res, next) => {
       const blob = bucket.file(Date.now() + '.' + type);
       const blobStream = blob.createWriteStream();
 
-      blobStream.on('error', (err) => {
-        console.log('보내는데에 오류발생!');
-        // Create a new blob in the bucket and upload the file data.
-        // !!! file.originalname을 삭제하고 다른 걸로 대체할 방법 찾아보기.
-        const blob = bucket.file(Date.now() + '.' + type);
-        console.log(file.originalname);
-        const blobStream = blob.createWriteStream();
-        //blob.name = Date.now();
-
         console.log('저장명' + blob.name);
         blobStream.on('error', (err) => {
           console.log('보내는데에 오류발생!');
@@ -64,10 +57,8 @@ router.post('/upload', upload.array('file'), async (req, res, next) => {
           // The public URL can be used to directly access the file via HTTP.
           const publicUrl = `https://storage.googleapis.com/${bucket.name}/${blob.name}`;
         });
-    res.status(200).send('ok');
-  });
-}catch (error) {
-        // 업로드 실행
+    
+     // 업로드 실행
         blobStream.end(file.buffer);
 
         if (type === 'mp4') {
@@ -87,7 +78,6 @@ router.post('/upload', upload.array('file'), async (req, res, next) => {
       });
 
       res.status(200).send('ok');
-    });
   } catch (error) {
     console.log(err);
     next(err);
