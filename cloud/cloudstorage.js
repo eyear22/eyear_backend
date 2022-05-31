@@ -3,6 +3,7 @@
 const videoIntelligence = require('@google-cloud/video-intelligence');
 const fs = require('fs');
 const { intervalToDuration } = require('date-fns');
+const keyword = require('../routes/keyword');
 const Text = require('../database/text_schema');
 const Video = require('../database/video_schema');
 const { Storage } = require('@google-cloud/storage');
@@ -22,7 +23,7 @@ try {
   }
 
 // DB에 해당 값 받아오려면 인수 변경해야함
-async function analyzeVideoTranscript(filename, video_id) {
+async function analyzeVideoTranscript(filename, user_id, patient_id) {
   
   const gcsUri = `gs://swu_eyear/${filename}`;
   const videoContext = {
@@ -50,7 +51,7 @@ async function analyzeVideoTranscript(filename, video_id) {
   const annotationResults = operationResult.annotationResults[0];
 
   // 파이썬 파일에 보내기
-  // annotationResults.speechTranscriptions
+  keyword(annotationResults, user_id, patient_id);
 
   const allSentence = annotationResults.speechTranscriptions
   .map((speechTranscription) => {
@@ -97,25 +98,35 @@ async function analyzeVideoTranscript(filename, video_id) {
 
   const vttname = filename.split('.')[0];  
   const subtitlePath = `./subtitle/${vttname}.vtt`;
-  await fs.writeFile(subtitlePath,  subtitleContent, function(error) { //function(error) 추가해야 함
+
+  // 다 생성한 vtt 파일을 로컬에 임시 저장
+  await fs.writeFile(subtitlePath, subtitleContent, function(error) { //function(error) 추가해야 함
     console.log('write end!');
   });
 
+  // 임시 저장한 파일을 GCS에 해당 객체 업로드
   await storage.bucket('swu_eyear').upload(subtitlePath, {
     destination: `subtitle/${vttname}.vtt`,
   });
 
+  // DB 저장 준비 - 연관된 비디오의 id를 들고옴
   const video = await Video.findOne(
     {
       video: filename,
     }
   );
 
+  // 자막 파일 DB 생성
   await Text.create({
     vid: `${video.video_id}`,
     text: `${vttname}.vtt`,
   });
 
+  fs.unlink(subtitlePath, function(err){
+    if(err) {
+      console.log("Error : ", err)
+    }
+  })
 }
 
 

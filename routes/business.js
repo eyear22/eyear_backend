@@ -12,7 +12,6 @@ const storage = new Storage();
 const Patient = require('../database/patient_schema');
 const { json } = require('body-parser');
 const router = express.Router();
-
 const Cloud = require('../cloud/cloudstorage');
 
 router.get('/receive', (req, res) => {
@@ -140,7 +139,7 @@ router.post('/post', upload.array('many'), async (req, res, next) => {
 
           // 영상일 경우 자막 파일 생성
           if(type === 'mp4'){
-            Cloud(`${blob.name}`);
+            Cloud(`${blob.name}`, post.to, post.from);
           }
         });
 
