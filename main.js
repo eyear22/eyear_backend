@@ -1,8 +1,11 @@
 const express = require('express'); // express 임포트
 const cors = require('cors');
 const bodyParser = require('body-parser');
+const cookieParser = require('cookie-parser');
 const path = require('path');
+const session = require('express-session');
 
+const passport = require('passport');
 const dbconnect = require('./models');
 const mainRouter = require('./routes/main');
 const joinRouter = require('./routes/join');
@@ -11,10 +14,12 @@ const businessRouter = require('./routes/business');
 const noticeRouter = require('./routes/notice');
 const videoRouter = require('./routes/video');
 const callRouter = require('./routes/call');
+const passportConfig = require('./passport').default;
 
 const app = express(); // app생성
 const port = 5000;
 
+passportConfig();
 const http = require('http');
 const server = http.createServer(app);
 const { Server } = require('socket.io');
@@ -23,6 +28,21 @@ const io = new Server(server);
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: false }));
 app.use(cors());
+app.use(cookieParser(process.env.COOKIE_SECRET));
+app.use(
+  session({
+    resave: false,
+    saveUninitialized: false,
+    secret: process.env.COOKIE_SECRET,
+    cookie: {
+      httpOnly: true,
+      secure: false,
+    },
+  })
+);
+
+app.use(passport.initialize());
+app.use(passport.session());
 
 app.get('/', () => {
   console.log('Get / 요청시에만 실행됩니다.');
