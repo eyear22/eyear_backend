@@ -192,14 +192,13 @@ router.get('/:pat_id/userList', async (req, res, next) => {
     });
 
     const familyList = await User.find({
-      _id: {$in: useridList.user_id}
-    })
-    
+      _id: {$in: useridList.map((v) => v.user_id)},
+    });
+
     const family = familyList.map((v) => ({
       name: v.username,
       id: v._id,
     }));
-        
     res.json(family);
   } catch (err) {
     next(err);
