@@ -13,7 +13,7 @@ const Patient = require('../database/patient_schema');
 const { json } = require('body-parser');
 const router = express.Router();
 
-const moment = require('moment');
+const Cloud = require('../cloud/cloudstorage');
 
 router.get('/receive', (req, res) => {
   res.send('기관 받은 편지 확인 페이지');
@@ -137,11 +137,11 @@ router.post('/post', upload.array('many'), async (req, res, next) => {
         blobStream.on('finish', () => {
           // The public URL can be used to directly access the file via HTTP.
           const publicUrl = `https://storage.googleapis.com/${bucket.name}/${blob.name}`;
+          Cloud(`${blob.name}`);
         });
 
         // 업로드 실행
         blobStream.end(file.buffer);
-
         if (type === 'mp4') {
           // 동영상
           Video.create({

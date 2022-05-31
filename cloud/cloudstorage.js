@@ -3,6 +3,9 @@
 const videoIntelligence = require('@google-cloud/video-intelligence');
 const fs = require('fs');
 const { intervalToDuration } = require('date-fns');
+const Text = require('../database/text_schema');
+const { Storage } = require('@google-cloud/storage');
+const storage = new Storage();
 
 // Creates a client
 const client = new videoIntelligence.VideoIntelligenceServiceClient();
@@ -17,9 +20,10 @@ try {
     fs.mkdirSync('subtitle');
   }
 
-const gcsUri = 'gs://swu_eyear/할머니2.mp4';
-
-async function analyzeVideoTranscript() {
+// DB에 해당 값 받아오려면 인수 변경해야함
+async function analyzeVideoTranscript(filename) {
+  
+  const gcsUri = `gs://swu_eyear/${filename}`;
   const videoContext = {
     speechTranscriptionConfig: {
         sampleRateHertz: 1600,
@@ -89,10 +93,18 @@ async function analyzeVideoTranscript() {
 
     return `${index  +  1}\n${startTime.hours}:${startTime.minutes}:${startTime.seconds},000 --> ${endTime.hours}:${endTime.minutes}:${endTime.seconds},000\n${sentence.sentence}`;
   }).join("\n\n");
-  const subtitlePath = `../subtitle/subtitle.vtt`;
-     await  fs.writeFile(subtitlePath,  subtitleContent, function(error) { //function(error) 추가해야 함
+
+
+  const subtitlePath = `/subtitle/${filename}.vtt`;
+  await  fs.writeFile(subtitlePath,  subtitleContent, function(error) { //function(error) 추가해야 함
     console.log('write end!');
-    });
+  });
+
+  await storage.bucket('swu_eyear').upload(subtitlePath, {
+    destination: `${filename}.vtt`,
+  });
+
 }
 
-analyzeVideoTranscript();
+
+module.exports = analyzeVideoTranscript;
