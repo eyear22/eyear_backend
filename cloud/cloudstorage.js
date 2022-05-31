@@ -4,6 +4,7 @@ const videoIntelligence = require('@google-cloud/video-intelligence');
 const fs = require('fs');
 const { intervalToDuration } = require('date-fns');
 const Text = require('../database/text_schema');
+const Video = require('../database/video_schema');
 const { Storage } = require('@google-cloud/storage');
 const storage = new Storage();
 
@@ -21,7 +22,7 @@ try {
   }
 
 // DB에 해당 값 받아오려면 인수 변경해야함
-async function analyzeVideoTranscript(filename) {
+async function analyzeVideoTranscript(filename, video_id) {
   
   const gcsUri = `gs://swu_eyear/${filename}`;
   const videoContext = {
@@ -94,14 +95,25 @@ async function analyzeVideoTranscript(filename) {
     return `${index  +  1}\n${startTime.hours}:${startTime.minutes}:${startTime.seconds},000 --> ${endTime.hours}:${endTime.minutes}:${endTime.seconds},000\n${sentence.sentence}`;
   }).join("\n\n");
 
-
-  const subtitlePath = `/subtitle/${filename}.vtt`;
-  await  fs.writeFile(subtitlePath,  subtitleContent, function(error) { //function(error) 추가해야 함
+  const vttname = filename.split('.')[0];  
+  const subtitlePath = `./subtitle/${vttname}.vtt`;
+  await fs.writeFile(subtitlePath,  subtitleContent, function(error) { //function(error) 추가해야 함
     console.log('write end!');
   });
 
   await storage.bucket('swu_eyear').upload(subtitlePath, {
-    destination: `${filename}.vtt`,
+    destination: `subtitle/${vttname}.vtt`,
+  });
+
+  const video = await Video.findOne(
+    {
+      video: filename,
+    }
+  );
+
+  await Text.create({
+    vid: `${video.video_id}`,
+    text: `${vttname}.vtt`,
   });
 
 }

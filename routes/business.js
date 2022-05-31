@@ -137,17 +137,22 @@ router.post('/post', upload.array('many'), async (req, res, next) => {
         blobStream.on('finish', () => {
           // The public URL can be used to directly access the file via HTTP.
           const publicUrl = `https://storage.googleapis.com/${bucket.name}/${blob.name}`;
-          Cloud(`${blob.name}`);
+
+          // 영상일 경우 자막 파일 생성
+          if(type === 'mp4'){
+            Cloud(`${blob.name}`);
+          }
         });
 
         // 업로드 실행
         blobStream.end(file.buffer);
         if (type === 'mp4') {
           // 동영상
-          Video.create({
+          const v = Video.create({
             video: `${blob.name}`,
             post_id: post.post_id,
           });
+                    
         } else if (type === 'png' || 'jpeg' || 'jpg') {
           // 이미지
           Image.create({
