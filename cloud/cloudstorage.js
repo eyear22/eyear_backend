@@ -3,7 +3,7 @@
 const videoIntelligence = require('@google-cloud/video-intelligence');
 const fs = require('fs');
 const { intervalToDuration } = require('date-fns');
-const keyword = require('../routes/keyword');
+const keyword = require('../keywords/keywords');
 const Text = require('../database/text_schema');
 const Video = require('../database/video_schema');
 const { Storage } = require('@google-cloud/storage');
@@ -50,8 +50,19 @@ async function analyzeVideoTranscript(filename, user_id, patient_id) {
   // one video is processed.
   const annotationResults = operationResult.annotationResults[0];
 
+  var transcription = '';
+  for (const speechTranscription of annotationResults.speechTranscriptions) {
+    // The number of alternatives for each transcription is limited by
+    // SpeechTranscriptionConfig.max_alternatives.
+    // Each alternative is a different possible transcription
+    // and has its own confidence score.
+    for (const alternative of speechTranscription.alternatives) {
+      transcription = transcription + alternative.transcript;
+    }
+  }
+  
   // 파이썬 파일에 보내기
-  keyword(annotationResults, user_id, patient_id);
+  keyword(transcription, user_id, patient_id);
 
   const allSentence = annotationResults.speechTranscriptions
   .map((speechTranscription) => {
