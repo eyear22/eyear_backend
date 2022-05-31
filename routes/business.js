@@ -172,14 +172,10 @@ router.get('/:hos_id/patientList', async (req, res, next) => {
       hos_id: req.params.hos_id,
     });
 
-    // 객체 생성
-    const patient = new Array();
-    const item = new Object();
-    for(var i=0; i<patientList.length; i++){
-        item.name = patientList[i].pat_name;
-        item.id = patientList[i]._id;
-        patient.push(item);
-    }
+    const patient = patientList.map((v) => ({
+      name: v.pat_name,
+      id: v._id,
+    }));
 
     res.json(patient);
   } catch (err) {
@@ -195,16 +191,14 @@ router.get('/:pat_id/userList', async (req, res, next) => {
       pat_id: req.params.pat_id,
     });
 
-    const family = new Array();
-    const item = new Object();
-    for(var i = 0; i<useridList.length; i++){
-      const user = await User.findOne({
-        _id: useridList[i].user_id
-      });
-      item.id = user._id;
-      item.name = user.username;
-      family.push(item);
-    }
+    const familyList = await User.find({
+      _id: {$in: useridList.user_id}
+    })
+    
+    const family = familyList.map((v) => ({
+      name: v.username,
+      id: v._id,
+    }));
         
     res.json(family);
   } catch (err) {
