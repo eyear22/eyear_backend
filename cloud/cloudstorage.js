@@ -46,21 +46,18 @@ async function analyzeVideoTranscript(filename, user_id, patient_id) {
   const [operation] = await client.annotateVideo(request);
   console.log('Waiting for operation to complete...');
   const [operationResult] = await operation.promise();
-  // There is only one annotation_result since only
-  // one video is processed.
+
   const annotationResults = operationResult.annotationResults[0];
 
+  // 키워드 추출에 보낼 변수 선언
   var transcription = '';
   for (const speechTranscription of annotationResults.speechTranscriptions) {
-    // The number of alternatives for each transcription is limited by
-    // SpeechTranscriptionConfig.max_alternatives.
-    // Each alternative is a different possible transcription
-    // and has its own confidence score.
+
     for (const alternative of speechTranscription.alternatives) {
       transcription = transcription + alternative.transcript;
     }
   }
-  
+
   // 파이썬 파일에 보내기
   keyword(transcription, user_id, patient_id);
 
