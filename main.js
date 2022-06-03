@@ -14,7 +14,8 @@ const businessRouter = require('./routes/business');
 const noticeRouter = require('./routes/notice');
 const videoRouter = require('./routes/video');
 const callRouter = require('./routes/call');
-const passportConfig = require('./passport').default;
+const loginRouter = require('./routes/login');
+const passportConfig = require('./passport');
 
 const app = express(); // app생성
 const port = 5000;
@@ -50,6 +51,7 @@ app.get('/', () => {
 
 app.use('/', mainRouter);
 app.use('/join', joinRouter);
+app.use('/login', loginRouter);
 app.use('/user', userRouter);
 app.use('/business', businessRouter);
 app.use('/notice', noticeRouter);
