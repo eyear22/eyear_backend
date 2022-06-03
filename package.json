@@ -16,6 +16,7 @@
     "@google-cloud/speech": "^4.10.1",
     "@google-cloud/storage": "^5.19.4",
     "@google-cloud/video-intelligence": "^3.4.1",
+    "bcrypt": "^5.0.1",
     "body-parser": "^1.20.0",
     "cookie-parser": "^1.4.6",
     "cors": "^2.8.5",

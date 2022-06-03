@@ -5,6 +5,7 @@ const { isLoggedIn, isNotLoggedIn } = require('./middlewares');
 const User = require('../database/user_schema');
 const Patient = require('../database/patient_schema');
 const Hospital = require('../database/hospital_schema');
+const Relation = require('../database/relationship_schema');
 const router = express.Router();
 
 router.get('/business', (req, res) => {
@@ -64,6 +65,35 @@ router.post('/patient_check', async (req, res, next) => {
       res.json(result);
     }
   } catch (err) {}
+});
+
+router.post('/user', async (req, res, next) => {
+  const { uid, password, email, username, sex, pat_id, relation } = req.body;
+
+  try {
+    const hash = await bcrypt.hash(password, 12);
+
+    const user = await User.create({
+      uid,
+      email,
+      username,
+      sex,
+      pwd: hash,
+    });
+
+    const hos_id = Patient.findOne({ _id: pat_id }, { hos_id: 1, _id: 0 });
+
+    await Relation.create({
+      pat_id,
+      hos_id,
+      user_id: user,
+      relation,
+    });
+
+    res.status(200).send('join success');
+  } catch (error) {
+    next(error);
+  }
 });
 
 module.exports = router;
