@@ -81,11 +81,11 @@ router.post('/user', async (req, res, next) => {
       pwd: hash,
     });
 
-    const hos_id = Patient.findOne({ _id: pat_id }, { hos_id: 1, _id: 0 });
+    const patient = Patient.findOne({ _id: pat_id });
 
     await Relation.create({
       pat_id,
-      hos_id,
+      hos_id: patient.hos_id,
       user_id: user,
       relation,
     });
