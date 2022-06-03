@@ -2,6 +2,7 @@
 const mongoose = require('mongoose');
 const autoIncrement = require('mongoose-auto-increment');
 
+autoIncrement.initialize(mongoose.connection);
 const { Schema } = mongoose;
 
 const postSchema = new Schema({
