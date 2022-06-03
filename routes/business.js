@@ -33,6 +33,13 @@ router.get('/detail/:post_id', async (req, res, next) => {
       {}
     ).populate('post_id');
 
+    await Post.updateOne(
+      {
+        post_id: req.params.post_id,
+      },
+      { check: true }
+    );
+
     const VideoUrl = await Video.find(
       {
         post_id: req.params.post_id,
@@ -72,8 +79,9 @@ router.get('/detail/:post_id', async (req, res, next) => {
       { relation: 1, _id: 0 }
     );
 
-      const date = PostDetail.createdAt;
-      const formatDate = date.getFullYear() + "-" + (date.getMonth() + 1) + "-" + date.getDate();
+    const date = PostDetail.createdAt;
+    const formatDate =
+      date.getFullYear() + '-' + (date.getMonth() + 1) + '-' + date.getDate();
 
     const result = {
       detail: PostDetail,
@@ -138,7 +146,7 @@ router.post('/post', upload.array('many'), async (req, res, next) => {
           const publicUrl = `https://storage.googleapis.com/${bucket.name}/${blob.name}`;
 
           // 영상일 경우 자막 파일 생성
-          if(type === 'mp4'){
+          if (type === 'mp4') {
             Cloud(`${blob.name}`, post.to, post.from);
           }
         });
@@ -151,7 +159,6 @@ router.post('/post', upload.array('many'), async (req, res, next) => {
             video: `${blob.name}`,
             post_id: post.post_id,
           });
-                    
         } else if (type === 'png' || 'jpeg' || 'jpg') {
           // 이미지
           Image.create({
@@ -196,7 +203,7 @@ router.get('/:pat_id/userList', async (req, res, next) => {
     });
 
     const familyList = await User.find({
-      _id: {$in: useridList.map((v) => v.user_id)},
+      _id: { $in: useridList.map((v) => v.user_id) },
     });
 
     const family = familyList.map((v) => ({
