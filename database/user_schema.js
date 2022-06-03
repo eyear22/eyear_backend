@@ -20,6 +20,10 @@ const userSchema = new Schema({
     type: Date,
     default: new Date(),
   },
+  sex: {
+    type: String,
+    required: true,
+  },
   email: {
     type: String,
     required: true,
