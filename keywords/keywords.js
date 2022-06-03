@@ -6,8 +6,8 @@ const { spawn } = require('child_process');
 function extract(text, user_id, pat_id) {
   let resultWords = [];
   let resultRanks = [];
-  const cutRatio = 0.5;
-  const updateRatio = 0.9;
+  const cutRatio = 0.3;
+  const updateRatio = 0.95;
   const result = spawn('python', ['extract.py', text]);
   result.stdout.on('data', (data) => {
     let keywords = data.toString('utf8');
@@ -17,6 +17,8 @@ function extract(text, user_id, pat_id) {
     const keywordsArray = keywords.split(regExp);
 
     let i = 0;
+    
+
     keywordsArray.forEach((value, index) => {
       if (index % 2 === 1) {
         const temp = value.split(', ');
@@ -76,6 +78,13 @@ function extract(text, user_id, pat_id) {
             });
           }
         });
+        // updateRanks - Rank 값 3.0 이하는 다 자르기
+        updateRanks.forEach((value, index) => {
+          if(value < cutRatio){
+            updateRanks.length = updateRanks.length - (updateRanks.length - index);
+          }
+        });
+        
 
         try {
           const finish = await Keyword.updateOne(

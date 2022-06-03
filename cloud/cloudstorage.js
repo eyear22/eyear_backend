@@ -6,6 +6,8 @@ const { intervalToDuration } = require('date-fns');
 const keyword = require('../keywords/keywords');
 const Text = require('../database/text_schema');
 const Video = require('../database/video_schema');
+const Keyword = require('../database/keyword_schema');
+
 const { Storage } = require('@google-cloud/storage');
 const storage = new Storage();
 
@@ -24,15 +26,26 @@ try {
 
 // DB에 해당 값 받아오려면 인수 변경해야함
 async function analyzeVideoTranscript(filename, user_id, patient_id) {
-  
+  const keywordsArray = await Keyword.findOne({
+    user_id: user_id,
+    patient_id: patient_id
+  });
+
+  console.log(keywordsArray.words);
+  let keyword_load = []
+  if(keywordsArray != null){
+    keyword_load = keywordsArray.words;
+  }
+
+
   const gcsUri = `gs://swu_eyear/${filename}`;
   const videoContext = {
     speechTranscriptionConfig: {
-        sampleRateHertz: 1600,
+        sampleRateHertz: 2200,
         languageCode: 'ko-KR',
       enableAutomaticPunctuation: true, //자동 구두점 활성화
       speechContexts: [{
-          phrases: ["한율 조금 저렴하거든요", "박막례입니다", "팁이야"]
+          phrases: keyword_load
         }],
     },
   };
