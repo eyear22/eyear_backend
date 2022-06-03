@@ -1,4 +1,5 @@
 const passport = require('passport');
+const local = require('./localStrategy');
 const User = require('../database/user_schema');
 
 module.exports = () => {
@@ -15,4 +16,6 @@ module.exports = () => {
       .then((user) => done(null, user))
       .catch((err) => done(err));
   });
+
+  local();
 };
