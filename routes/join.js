@@ -55,6 +55,7 @@ router.post('/patient_check', async (req, res, next) => {
     } else {
       const hospital = await Hospital.findOne({ _id: patient.hos_id });
       const result = {
+        pat_id: patient._id,
         hos_name: hospital.hos_name,
         pat_name: patient.pat_name,
         birth: JSON.stringify(patient.birth).split('T')[0].substring(1),
