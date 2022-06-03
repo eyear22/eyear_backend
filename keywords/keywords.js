@@ -10,7 +10,6 @@ function extract(text, user_id, pat_id) {
   const updateRatio = 0.95;
   const result = spawn('python', ['extract.py', text]);
   result.stdout.on('data', (data) => {
-    console.log(data);
     let keywords = data.toString('utf8');
     keywords = keywords.slice(1, -3);
 
@@ -19,7 +18,6 @@ function extract(text, user_id, pat_id) {
 
     let i = 0;
     
-    console.log(keywordsArray);
 
     keywordsArray.forEach((value, index) => {
       if (index % 2 === 1) {
@@ -32,7 +30,6 @@ function extract(text, user_id, pat_id) {
         }
       }
     });
-    console.log(resultWords);
   });
 
   result.on('close', async (code) => {
@@ -87,8 +84,7 @@ function extract(text, user_id, pat_id) {
             updateRanks.length = updateRanks.length - (updateRanks.length - index);
           }
         });
-
-        console.log(updateRanks);
+        
 
         try {
           const finish = await Keyword.updateOne(
