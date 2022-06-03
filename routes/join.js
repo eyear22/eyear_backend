@@ -30,6 +30,21 @@ router.get('/user_id_check/:uid', async (req, res, next) => {
   }
 });
 
+router.get('/user_email_check/:email', async (req, res, next) => {
+  try {
+    const user = await User.findOne({
+      email: req.params.email,
+    });
+    if (user === null) {
+      res.status(200).send('ok');
+    } else {
+      res.status(200).send('exit');
+    }
+  } catch (err) {
+    next(err);
+  }
+});
+
 router.post('/patient_check', async (req, res, next) => {
   if (!req) return;
   try {
