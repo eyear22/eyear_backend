@@ -26,16 +26,15 @@ try {
 
 // DB에 해당 값 받아오려면 인수 변경해야함
 async function analyzeVideoTranscript(filename, user_id, patient_id) {
-  const keywordsArray = await Keyword.findOne({
-    user_id: user_id,
-    patient_id: patient_id
-  });
+  // const keywordsArray = await Keyword.findOne({
+  //   user_id: user_id,
+  //   patient_id: patient_id
+  // });
 
-  console.log(keywordsArray.words);
-  let keyword_load = []
-  if(keywordsArray != null){
-    keyword_load = keywordsArray.words;
-  }
+  // let keyword_load = []
+  // if(keywordsArray != null){
+  //   keyword_load = keywordsArray.words;
+  // }
 
 
   const gcsUri = `gs://swu_eyear/${filename}`;
@@ -45,7 +44,7 @@ async function analyzeVideoTranscript(filename, user_id, patient_id) {
         languageCode: 'ko-KR',
       enableAutomaticPunctuation: true, //자동 구두점 활성화
       speechContexts: [{
-          phrases: keyword_load
+          phrases: []//keyword_load
         }],
     },
   };
@@ -72,7 +71,7 @@ async function analyzeVideoTranscript(filename, user_id, patient_id) {
   }
 
   // 파이썬 파일에 보내기
-  keyword(transcription, user_id, patient_id);
+  //keyword(transcription, user_id, patient_id);
 
   const allSentence = annotationResults.speechTranscriptions
   .map((speechTranscription) => {

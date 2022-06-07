@@ -6,7 +6,7 @@ const { spawn } = require('child_process');
 function extract(text, user_id, pat_id) {
   let resultWords = [];
   let resultRanks = [];
-  const cutRatio = 0.3;
+  const cutRatio = 0.28;
   const updateRatio = 0.95;
   const result = spawn('python', ['extract.py', text]);
   result.stdout.on('data', (data) => {
