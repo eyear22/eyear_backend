@@ -17,7 +17,7 @@ router.post('/user', async (req, res, next) => {
         console.error(loginError);
         return next(loginError);
       }
-      return res.status(200).send('login success');
+      return res.status(200).send(user);
     });
   })(req, res, next);
 });
