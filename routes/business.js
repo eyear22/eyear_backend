@@ -1,7 +1,6 @@
 const express = require('express');
 const multer = require('multer');
 const path = require('path');
-const fs = require('fs');
 const Video = require('../database/video_schema');
 const Image = require('../database/image_schema');
 const Post = require('../database/post_schema');
@@ -10,16 +9,69 @@ const Relation = require('../database/relationship_schema');
 const { Storage } = require('@google-cloud/storage');
 const storage = new Storage();
 const Patient = require('../database/patient_schema');
-const { json } = require('body-parser');
 const router = express.Router();
 const Cloud = require('../cloud/cloudstorage');
 
-router.get('/receive', (req, res) => {
-  res.send('기관 받은 편지 확인 페이지');
+// 기관 받은 편지 리스트
+router.get('/receive_list/:_id', async (req, res, next) => {
+  if (!req) return;
+  try {
+    const postList = await Post.find({
+      to: req.params._id,
+    }).sort({ createdAt: -1 });
+
+    const result = [];
+    for (let i = 0; i < postList.length; i++) {
+      // eslint-disable-next-line
+      const user = await User.findOne({ _id: postList[i].from });
+      if (user !== null) {
+        const createdAt = JSON.stringify(postList[i].createdAt).substr(1, 10);
+        result[i] = {
+          _id: postList[i]._id,
+          title: postList[i].title,
+          content: postList[i].content,
+          createdAt: createdAt,
+          from: user.username,
+          to: postList[i].to,
+          check: postList[i].check,
+        };
+      }
+    }
+
+    res.send(result);
+  } catch (err) {
+    next(err);
+  }
 });
 
-router.get('/send', (req, res) => {
-  res.send('기관 보낸 편지 확인 페이지');
+// 기관 보낸 편지 리스트
+router.get('/send_list/:_id', async (req, res, next) => {
+  if (!req) return;
+  try {
+    const postList = await Post.find({
+      from: req.params._id,
+    }).sort({ createdAt: -1 });
+    const result = [];
+    for (let i = 0; i < postList.length; i++) {
+      // eslint-disable-next-line
+      const user = await User.findOne({ _id: postList[i].to });
+      if (user !== null) {
+        const createdAt = JSON.stringify(postList[i].createdAt).substr(1, 10);
+        result[i] = {
+          _id: postList[i]._id,
+          title: postList[i].title,
+          content: postList[i].content,
+          createdAt: createdAt,
+          from: postList[i].from,
+          to: user.username,
+          check: postList[i].check,
+        };
+      }
+    }
+    res.send(result);
+  } catch (err) {
+    next(err);
+  }
 });
 
 // 편지 상세 조회 - 보낸 편지를 확인
