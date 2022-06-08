@@ -59,6 +59,22 @@ function extract(text, user_id, pat_id) {
           preRank[index] = value * updateRatio;
         });
 
+        const preWords = preKeyword.words;
+        resultWords.forEach((value, index) => {
+          const i = preWords.indexOf(value);
+          if (i !== -1){
+            // 동일 키워드 존재
+            if(resultRanks[index]>=preRank[i]){
+              preRank.splice(i,1);
+              preWords.splice(i,1);
+            }
+            else{
+              resultRanks.splice(index,1);
+              resultWords.splice(index,1);
+            }
+          }
+        });
+      
         const updateRanks = preRank.concat(resultRanks);
         updateRanks.sort((a, b) => b - a); // 내림차순 정렬
 
