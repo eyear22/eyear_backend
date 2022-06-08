@@ -131,9 +131,7 @@ router.get('/detail/:post_id', async (req, res, next) => {
       { relation: 1, _id: 0 }
     );
 
-    const date = PostDetail.createdAt;
-    const formatDate =
-      date.getFullYear() + '-' + (date.getMonth() + 1) + '-' + date.getDate();
+    const formatDate = JSON.stringify(PostDetail.createdAt).substr(1, 10);
 
     const result = {
       detail: PostDetail,
