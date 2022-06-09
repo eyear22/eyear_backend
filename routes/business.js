@@ -28,6 +28,7 @@ router.get('/receive_list/:_id', async (req, res, next) => {
         const createdAt = JSON.stringify(postList[i].createdAt).substr(1, 10);
         result[i] = {
           _id: postList[i]._id,
+          post_id: postList[i].post_id,
           title: postList[i].title,
           content: postList[i].content,
           createdAt: createdAt,
@@ -59,6 +60,7 @@ router.get('/send_list/:_id', async (req, res, next) => {
         const createdAt = JSON.stringify(postList[i].createdAt).substr(1, 10);
         result[i] = {
           _id: postList[i]._id,
+          post_id: postList[i].post_id,
           title: postList[i].title,
           content: postList[i].content,
           createdAt: createdAt,
