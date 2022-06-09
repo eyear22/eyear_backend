@@ -11,9 +11,15 @@ function isSingleCharacter(text) {
   return (lastStrCode - strGa) % 28 === 0;
 }
 
-function postposition(text) {
-  return text + (isSingleCharacter(text) ? '가' : '이가');
+function addPostposition(text) {
+  const word1 = text + (isSingleCharacter(text) ? '' : '이');
+  const word2 = text + (isSingleCharacter(text) ? '는' : '이는');
+  const word3 = text + (isSingleCharacter(text) ? '가' : '이가');
+  const word4 = text + (isSingleCharacter(text) ? '랑' : '이랑');
+  const word5 = text + (isSingleCharacter(text) ? '의' : '이의');
+  const word6 = text + (isSingleCharacter(text) ? '에' : '이에');
+  const words = [word1, word2, word3, word4, word5, word6];
+  return words;
 }
 
-console.log(postposition('채림'));
-console.log(postposition('민교'));
+module.exports = addPostposition;
