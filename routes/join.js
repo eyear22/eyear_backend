@@ -7,6 +7,9 @@ const User = require('../database/user_schema');
 const Patient = require('../database/patient_schema');
 const Hospital = require('../database/hospital_schema');
 const Relation = require('../database/relationship_schema');
+const Commonword = require('../database/commonword_schema');
+const addPostposition = require('../keywords/nounKeywords');
+
 const router = express.Router();
 
 router.get('/business', (req, res) => {
@@ -90,6 +93,28 @@ router.post('/user', async (req, res, next) => {
       user_id: user,
       relation,
     });
+
+    const commonWord = await Commonword.findOne({
+      pat_id,
+    });
+
+    const words = addPostposition(username.substr(1, 3));
+
+    if (commonWord === null) {
+      await Commonword.create({
+        pat_id,
+        words,
+      });
+    } else {
+      const preWords = commonWord.words;
+      const updateWords = preWords.concat(words);
+      await Commonword.updateOne(
+        {
+          pat_id,
+        },
+        { words: updateWords }
+      );
+    }
 
     res.status(200).send('join success');
   } catch (error) {
