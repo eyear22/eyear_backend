@@ -10,6 +10,7 @@ const { Storage } = require('@google-cloud/storage');
 const storage = new Storage();
 const Patient = require('../database/patient_schema');
 const router = express.Router();
+const Text = require('../database/text_schema');
 const Cloud = require('../cloud/cloudstorage');
 
 // 기관 받은 편지 리스트
@@ -98,13 +99,13 @@ router.get('/detail/:post_id', async (req, res, next) => {
       {
         post_id: req.params.post_id,
       },
-      { video: 1, _id: 0, post_id: 0, vid: 1 }
+      { video: 1, _id: 0, post_id: 0, video_id: 1 }
     ).populate('post_id');
 
-    // const sub = await Text.find({
-    //   vid: VideoUrl.vid,
-    // })
-
+    const sub = await Text.find({
+      vid: VideoUrl[0].video_id,
+    })
+   
     const ImageUrl = await Image.find(
       {
         post_id: req.params.post_id,
@@ -141,10 +142,11 @@ router.get('/detail/:post_id', async (req, res, next) => {
       image: ImageUrl,
       to: to,
       from: from,
+      Sub: sub,
       relation: relation,
       date: formatDate,
     };
-
+    console.log(result)
     res.send(result);
   } catch (err) {
     next(err);
