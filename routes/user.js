@@ -1,7 +1,7 @@
 const express = require('express');
+
 const router = express.Router();
 const Post = require('../database/post_schema');
-const User = require('../database/user_schema');
 const Patient = require('../database/patient_schema');
 const Relation = require('../database/relationship_schema');
 
@@ -24,7 +24,7 @@ router.get('/receive_list/:_id', async (req, res, next) => {
           post_id: postList[i].post_id,
           title: postList[i].title,
           content: postList[i].content,
-          createdAt: createdAt,
+          createdAt,
           from: patient.pat_name,
           to: postList[i].to,
           check: postList[i].check,
@@ -45,7 +45,7 @@ router.get('/send_list/:_id', async (req, res, next) => {
     const postList = await Post.find({
       from: req.params._id,
     }).sort({ post_id: -1 });
-    console.log(postList);
+
     const result = [];
     for (let i = 0; i < postList.length; i++) {
       // eslint-disable-next-line
@@ -57,7 +57,7 @@ router.get('/send_list/:_id', async (req, res, next) => {
           post_id: postList[i].post_id,
           title: postList[i].title,
           content: postList[i].content,
-          createdAt: createdAt,
+          createdAt,
           from: postList[i].from,
           to: patient.pat_name,
           check: postList[i].check,
@@ -89,10 +89,6 @@ router.get('/:user_id/patientList', async (req, res, next) => {
   } catch (err) {
     next(err);
   }
-});
-
-router.get('/post', (req, res) => {
-  res.send('개인 편지 작성 페이지');
 });
 
 router.get('/detail/:postid', (req, res) => {

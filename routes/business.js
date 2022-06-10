@@ -1,17 +1,16 @@
 const express = require('express');
-const multer = require('multer');
 const path = require('path');
+const { Storage } = require('@google-cloud/storage');
 const Video = require('../database/video_schema');
 const Image = require('../database/image_schema');
 const Post = require('../database/post_schema');
 const User = require('../database/user_schema');
 const Relation = require('../database/relationship_schema');
-const { Storage } = require('@google-cloud/storage');
-const storage = new Storage();
 const Patient = require('../database/patient_schema');
+
+const storage = new Storage();
 const router = express.Router();
 const Text = require('../database/text_schema');
-const Cloud = require('../cloud/cloudstorage');
 
 const bucketName = process.env.GCLOUD_STORAGE_BUCKET;
 
@@ -34,7 +33,7 @@ router.get('/receive_list/:_id', async (req, res, next) => {
           post_id: postList[i].post_id,
           title: postList[i].title,
           content: postList[i].content,
-          createdAt: createdAt,
+          createdAt,
           from: user.username,
           to: postList[i].to,
           check: postList[i].check,
@@ -66,7 +65,7 @@ router.get('/send_list/:_id', async (req, res, next) => {
           post_id: postList[i].post_id,
           title: postList[i].title,
           content: postList[i].content,
-          createdAt: createdAt,
+          createdAt,
           from: postList[i].from,
           to: user.username,
           check: postList[i].check,
@@ -161,14 +160,13 @@ router.get('/detail/:post_id', async (req, res, next) => {
       detail: PostDetail,
       video: VideoUrl,
       image: ImageUrl,
-      to: to,
-      from: from,
+      to,
+      from,
       Sub: sub,
-      relation: relation,
+      relation,
       date: formatDate,
       videoUrl: videoLocalUrl,
     };
-    console.log(result);
     res.send(result);
   } catch (err) {
     next(err);
@@ -182,92 +180,6 @@ router.get('/post', (req, res) => {
 
 router.get('/manage', (req, res) => {
   res.send('기관 환자 관리 페이지');
-});
-
-//GCS에 업로드 하는 Multer
-const upload = multer({
-  storage: multer.memoryStorage(),
-  limits: {
-    //fileSize: 5 * 1024 * 1024, // no larger than 5mb, you can change as needed.
-  },
-});
-
-const bucket = storage.bucket(process.env.GCLOUD_STORAGE_BUCKET);
-
-router.post('/post', upload.array('many'), async (req, res, next) => {
-  if (!req) return;
-  try {
-    const post = await Post.create({
-      title: req.body.title,
-      content: req.body.content,
-      // createdAt: formatDate,
-      from: req.body.pat_id,
-      to: (await User.findOne({ username: req.body.receiver }))._id,
-      check: false,
-    });
-
-    if (req.files.length != 0) {
-      await req.files.map((file) => {
-        // 여러 파일이 들어오므로 map() 사용
-        const type = file.mimetype.substr(file.mimetype.lastIndexOf('/') + 1); // 파일 type
-        const blob = bucket.file(Date.now() + '.' + type);
-        console.log(file.originalname);
-        const blobStream = blob.createWriteStream();
-
-        blobStream.on('error', (err) => {
-          next(err);
-        });
-        blobStream.on('finish', () => {
-          // The public URL can be used to directly access the file via HTTP.
-          const publicUrl = `https://storage.googleapis.com/${bucket.name}/${blob.name}`;
-
-          // 영상일 경우 자막 파일 생성
-          if (type === 'mp4') {
-            Cloud(`${blob.name}`, post.to, post.from);
-          }
-        });
-
-        // 업로드 실행
-        blobStream.end(file.buffer);
-        if (type === 'mp4') {
-          // 동영상
-          const v = Video.create({
-            video: `${blob.name}`,
-            post_id: post.post_id,
-          });
-        } else if (type === 'png' || 'jpeg' || 'jpg') {
-          // 이미지
-          Image.create({
-            image: `${blob.name}`,
-            post_id: post.post_id,
-          });
-        }
-        return type;
-      });
-    }
-    res.status(200).send('ok');
-  } catch (err) {
-    console.log(err);
-    next(err);
-  }
-});
-
-router.get('/:hos_id/patientList', async (req, res, next) => {
-  if (!req) return;
-  try {
-    const patientList = await Patient.find({
-      hos_id: req.params.hos_id,
-    });
-
-    const patient = patientList.map((v) => ({
-      name: v.pat_name,
-      id: v._id,
-    }));
-
-    res.json(patient);
-  } catch (err) {
-    next(err);
-  }
 });
 
 // 환자와 관련된 가족 리스트
