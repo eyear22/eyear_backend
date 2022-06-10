@@ -12,23 +12,33 @@ module.exports = () => {
         usernameField: 'uid',
         passwordField: 'password',
       },
-      async (uid, password, flag, done) => {
+      async (uid, password, done) => {
         try {
           let exUser;
-          if (flag === 0) {
-            exUser = await User.findOne({ uid: uid });
-          } else {
+          exUser = await User.findOne({ uid: uid });
+
+          if (exUser === null) {
             exUser = await Hospital.findOne({ hid: uid });
-          }
-          if (exUser !== null) {
+
+            if (exUser !== null) {
+              // 기관
+              const result = await bcrypt.compare(password, exUser.pwd);
+              if (result) {
+                done(null, exUser, 1);
+              } else {
+                done(null, false, { message: 'Password Mismatch' });
+              }
+            } else {
+              done(null, false, { message: 'Not exited User' }); // 개인 기관 둘 다 아님
+            }
+          } else {
+            // 개인
             const result = await bcrypt.compare(password, exUser.pwd);
             if (result) {
-              done(null, exUser, flag);
+              done(null, exUser, 0);
             } else {
               done(null, false, { message: 'Password Mismatch' });
             }
-          } else {
-            done(null, false, { message: 'Not exited User' });
           }
         } catch (error) {
           console.error(error);

@@ -1,5 +1,6 @@
 const express = require('express');
 const passport = require('passport');
+
 const router = express.Router();
 
 router.post('/', async (req, res, next) => {
@@ -17,8 +18,9 @@ router.post('/', async (req, res, next) => {
         console.error(loginError);
         return next(loginError);
       }
-      return res.status(200).send({ user: user, flag: info });
+      return res.status(200).send({ user, flag: info });
     });
   })(req, res, next);
 });
+
 module.exports = router;
