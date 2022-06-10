@@ -102,9 +102,13 @@ router.get('/detail/:post_id', async (req, res, next) => {
       { video: 1, _id: 0, post_id: 0, video_id: 1 }
     ).populate('post_id');
 
-    const sub = await Text.find({
-      vid: VideoUrl[0].video_id,
-    })
+    let sub = [];
+    if(VideoUrl.length !== 0){
+      sub = await Text.find({
+        vid: VideoUrl[0].video_id,
+      })
+    }
+
    
     const ImageUrl = await Image.find(
       {
