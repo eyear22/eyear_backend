@@ -10,7 +10,7 @@ router.post('/', async (req, res, next) => {
       return next(authError);
     }
     if (!user) {
-      return res.send(info);
+      return res.status(400).send(info);
     }
 
     return req.login(user, (loginError) => {
