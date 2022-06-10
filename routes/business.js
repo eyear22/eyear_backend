@@ -13,6 +13,8 @@ const router = express.Router();
 const Text = require('../database/text_schema');
 const Cloud = require('../cloud/cloudstorage');
 
+const bucketName = (process.env.GCLOUD_STORAGE_BUCKET);
+
 // 기관 받은 편지 리스트
 router.get('/receive_list/:_id', async (req, res, next) => {
   if (!req) return;
@@ -103,12 +105,27 @@ router.get('/detail/:post_id', async (req, res, next) => {
     ).populate('post_id');
 
     let sub = [];
+    let videoLocalUrl = '';
     if(VideoUrl.length !== 0){
+      // 비디오 로컬에 저장
+      // GCS에서 파일 받아서 video 객체를 받아오기
+      // GCS에 저장된 파일 이름
+      const FileName = VideoUrl[0].video;
+      videoLocalUrl = `./uploads/${FileName}`;
+      const options = {
+        destination: videoLocalUrl,
+      };
+
+      // Downloads the file - 버킷에 있는 객체 파일을 로컬에 저장
+      await storage.bucket(bucketName).file(FileName).download(options);
+
+      console.log(videoLocalUrl);
+
+      // 자막 url 받아오기
       sub = await Text.find({
         vid: VideoUrl[0].video_id,
       })
     }
-
    
     const ImageUrl = await Image.find(
       {
@@ -149,6 +166,7 @@ router.get('/detail/:post_id', async (req, res, next) => {
       Sub: sub,
       relation: relation,
       date: formatDate,
+      videoUrl: videoLocalUrl
     };
     console.log(result)
     res.send(result);
