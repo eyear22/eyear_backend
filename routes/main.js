@@ -134,7 +134,7 @@ router.get('/sendDetail/:flag/:post_id', async (req, res, next) => {
     let from;
     let relation = '';
 
-    if (req.params.flag === 0) {
+    if (req.params.flag === '0') {
       // 개인 입장
       to = await Patient.findOne(
         {
@@ -187,6 +187,7 @@ router.get('/sendDetail/:flag/:post_id', async (req, res, next) => {
       date: formatDate,
       videoUrl: videoLocalUrl,
     };
+    console.log(result);
     res.send(result);
   } catch (err) {
     next(err);
@@ -250,7 +251,7 @@ router.get('/receiveDetail/:flag/:post_id', async (req, res, next) => {
     let from;
     let relation = '';
 
-    if (req.params.flag === 0) {
+    if (req.params.flag === '0') {
       // 개인 입장
       to = await User.findOne(
         {
