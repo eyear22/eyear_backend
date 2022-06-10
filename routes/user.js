@@ -11,7 +11,7 @@ router.get('/receive_list/:_id', async (req, res, next) => {
   try {
     const postList = await Post.find({
       to: req.params._id,
-    }).sort({ createdAt: -1 });
+    }).sort({ post_id: -1 });
 
     const result = [];
     for (let i = 0; i < postList.length; i++) {
@@ -44,7 +44,8 @@ router.get('/send_list/:_id', async (req, res, next) => {
   try {
     const postList = await Post.find({
       from: req.params._id,
-    }).sort({ createdAt: -1 });
+    }).sort({ post_id: -1 });
+    console.log(postList);
     const result = [];
     for (let i = 0; i < postList.length; i++) {
       // eslint-disable-next-line

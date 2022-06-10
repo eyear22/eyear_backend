@@ -13,7 +13,7 @@ const router = express.Router();
 const Text = require('../database/text_schema');
 const Cloud = require('../cloud/cloudstorage');
 
-const bucketName = (process.env.GCLOUD_STORAGE_BUCKET);
+const bucketName = process.env.GCLOUD_STORAGE_BUCKET;
 
 // 기관 받은 편지 리스트
 router.get('/receive_list/:_id', async (req, res, next) => {
@@ -21,7 +21,7 @@ router.get('/receive_list/:_id', async (req, res, next) => {
   try {
     const postList = await Post.find({
       to: req.params._id,
-    }).sort({ createdAt: -1 });
+    }).sort({ post_id: -1 });
 
     const result = [];
     for (let i = 0; i < postList.length; i++) {
@@ -54,7 +54,7 @@ router.get('/send_list/:_id', async (req, res, next) => {
   try {
     const postList = await Post.find({
       from: req.params._id,
-    }).sort({ createdAt: -1 });
+    }).sort({ post_id: -1 });
     const result = [];
     for (let i = 0; i < postList.length; i++) {
       // eslint-disable-next-line
@@ -106,7 +106,7 @@ router.get('/detail/:post_id', async (req, res, next) => {
 
     let sub = [];
     let videoLocalUrl = '';
-    if(VideoUrl.length !== 0){
+    if (VideoUrl.length !== 0) {
       // 비디오 로컬에 저장
       // GCS에서 파일 받아서 video 객체를 받아오기
       // GCS에 저장된 파일 이름
@@ -124,9 +124,9 @@ router.get('/detail/:post_id', async (req, res, next) => {
       // 자막 url 받아오기
       sub = await Text.find({
         vid: VideoUrl[0].video_id,
-      })
+      });
     }
-   
+
     const ImageUrl = await Image.find(
       {
         post_id: req.params.post_id,
@@ -166,9 +166,9 @@ router.get('/detail/:post_id', async (req, res, next) => {
       Sub: sub,
       relation: relation,
       date: formatDate,
-      videoUrl: videoLocalUrl
+      videoUrl: videoLocalUrl,
     };
-    console.log(result)
+    console.log(result);
     res.send(result);
   } catch (err) {
     next(err);
