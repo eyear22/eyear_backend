@@ -2,7 +2,7 @@ const express = require('express');
 const passport = require('passport');
 const router = express.Router();
 
-router.post('/user', async (req, res, next) => {
+router.post('/', async (req, res, next) => {
   passport.authenticate('local', (authError, user, info) => {
     if (authError) {
       console.error(authError);
@@ -17,7 +17,7 @@ router.post('/user', async (req, res, next) => {
         console.error(loginError);
         return next(loginError);
       }
-      return res.status(200).send(user);
+      return res.status(200).send({ user: user, flag: info });
     });
   })(req, res, next);
 });

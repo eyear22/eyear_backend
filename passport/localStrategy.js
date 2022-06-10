@@ -3,6 +3,7 @@ const LocalStrategy = require('passport-local').Strategy;
 const bcrypt = require('bcrypt');
 
 const User = require('../database/user_schema');
+const Hospital = require('../database/hospital_schema');
 
 module.exports = () => {
   passport.use(
@@ -11,13 +12,18 @@ module.exports = () => {
         usernameField: 'uid',
         passwordField: 'password',
       },
-      async (uid, password, done) => {
+      async (uid, password, flag, done) => {
         try {
-          const exUser = await User.findOne({ uid: uid });
+          let exUser;
+          if (flag === 0) {
+            exUser = await User.findOne({ uid: uid });
+          } else {
+            exUser = await Hospital.findOne({ hid: uid });
+          }
           if (exUser !== null) {
             const result = await bcrypt.compare(password, exUser.pwd);
             if (result) {
-              done(null, exUser);
+              done(null, exUser, flag);
             } else {
               done(null, false, { message: 'Password Mismatch' });
             }
