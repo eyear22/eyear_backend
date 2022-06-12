@@ -48,7 +48,7 @@ async function analyzeVideoTranscript(filename, user_id, patient_id) {
     speechTranscriptionConfig: {
       sampleRateHertz: 2200,
       languageCode: 'ko-KR',
-      enableAutomaticPunctuation: true, // 자동 구두점 활성화
+      enableAutomaticPunctuation: false, // 자동 구두점 활성화
       speechContexts: [
         {
           phrases: keyword_load,
