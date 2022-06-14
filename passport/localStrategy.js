@@ -22,23 +22,26 @@ module.exports = () => {
 
             if (exUser !== null) {
               // 기관
-              const result = await bcrypt.compare(password, exUser.pwd);
-              if (result) {
-                done(null, exUser, 1);
-              } else {
-                done(null, false, { message: 'Password Mismatch' });
-              }
-            } else {
-              done(null, false, { message: 'Not exited User' }); // 개인 기관 둘 다 아님
+              done(null, exUser, 1);
             }
+            // const result = await bcrypt.compare(password, exUser.pwd);
+            // if (result) {
+            //   done(null, exUser, 1);
+            // } else {
+            //   done(null, false, { message: 'Password Mismatch' });
+            // }
+            // } else {
+            //   done(null, false, { message: 'Not exited User' }); // 개인 기관 둘 다 아님
+            // }
           } else {
+            done(null, exUser, 0);
             // 개인
-            const result = await bcrypt.compare(password, exUser.pwd);
-            if (result) {
-              done(null, exUser, 0);
-            } else {
-              done(null, false, { message: 'Password Mismatch' });
-            }
+            // const result = await bcrypt.compare(password, exUser.pwd);
+            // if (result) {
+            //   done(null, exUser, 0);
+            // } else {
+            //   done(null, false, { message: 'Password Mismatch' });
+            // }
           }
         } catch (error) {
           console.error(error);
