@@ -78,7 +78,6 @@ router.get('/send_list/:_id', async (req, res, next) => {
   }
 });
 
-
 // 편지 상세 조회 - 보낸 편지를 확인
 router.get('/detail/:post_id', async (req, res, next) => {
   if (!req) return;
@@ -107,7 +106,7 @@ router.get('/detail/:post_id', async (req, res, next) => {
     let sub = [];
     let videoLocalUrl = '';
     let subLocalUrl = '';
-    if(VideoUrl.length !== 0){
+    if (VideoUrl.length !== 0) {
       // 비디오 로컬에 저장
       // GCS에서 파일 받아서 video 객체를 받아오기
       // GCS에 저장된 파일 이름
@@ -125,17 +124,20 @@ router.get('/detail/:post_id', async (req, res, next) => {
       // 자막 url 받아오기
       sub = await Text.find({
         vid: VideoUrl[0].video_id,
-      })
+      });
 
       // 자막 로컬에 저장
       const subFileName = sub[0].text;
       subLocalUrl = `./uploads/${subFileName}`;
-      options.destination = subLocalUrl; 
+      options.destination = subLocalUrl;
 
       // Downloads the file - 버킷에 있는 객체 파일을 로컬에 저장
-      await storage.bucket(bucketName).file('subtitle/'+ subFileName).download(options);
+      await storage
+        .bucket(bucketName)
+        .file('subtitle/' + subFileName)
+        .download(options);
     }
-   
+
     const ImageUrl = await Image.find(
       {
         post_id: req.params.post_id,
@@ -178,7 +180,7 @@ router.get('/detail/:post_id', async (req, res, next) => {
       videoUrl: videoLocalUrl,
       subUrl: subLocalUrl,
     };
-    console.log(result)
+    console.log(result);
     res.send(result);
   } catch (err) {
     next(err);
@@ -211,6 +213,24 @@ router.get('/:pat_id/userList', async (req, res, next) => {
       id: v._id,
     }));
     res.json(family);
+  } catch (err) {
+    next(err);
+  }
+});
+
+router.get('/:hos_id/patientList', async (req, res, next) => {
+  if (!req) return;
+  try {
+    const patients = await Patient.find({
+      hos_id: req.params.hos_id,
+    });
+
+    const patientList = patients.map((v) => ({
+      name: v.pat_name,
+      id: v._id,
+    }));
+
+    res.json(patientList);
   } catch (err) {
     next(err);
   }
