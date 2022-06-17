@@ -11,7 +11,7 @@ autoIncrement.initialize(mongoose.connection); // autoIncrement 사용을 위해
 
 const commonwordSchema = new Schema({
   word_id: {
-    // 생성되면 자동으로 부여되는 숫자
+    // 생성되면 자동으로 부여되는 공통 단어의 고유한 숫자
     type: Number,
     unique: true,
   },
