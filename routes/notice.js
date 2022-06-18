@@ -1,3 +1,6 @@
+// 공지사항에 사용할 api 라우터 코드 파일
+// 추후 개발 예정
+
 const express = require('express');
 const router = express.Router();
 

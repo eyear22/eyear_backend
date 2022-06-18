@@ -1,3 +1,5 @@
+// 추가적인 기능인 실시간 화상 통화 기능을 위한 코드
+// 추후 개발 예정
 const express = require('express');
 const router = express.Router();
 const path = require('path');
@@ -31,5 +33,3 @@ router.get('/room', (req, res) => {
 });
 
 module.exports = router;
-
-// 문자열 중복 방지 코드 작성하기

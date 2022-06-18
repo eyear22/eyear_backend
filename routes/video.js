@@ -1,6 +1,6 @@
 const express = require('express');
 const multer = require('multer');
-const path = require('path');
+const path = require('Kpath');
 const fs = require('fs');
 const Video = require('../database/video_schema');
 const Image = require('../database/image_schema');
@@ -48,36 +48,36 @@ router.post('/upload', upload.array('file'), async (req, res, next) => {
       const blob = bucket.file(Date.now() + '.' + type);
       const blobStream = blob.createWriteStream();
 
-        console.log('저장명' + blob.name);
-        blobStream.on('error', (err) => {
-          console.log('보내는데에 오류발생!');
-          next(err);
-        });
-        blobStream.on('finish', () => {
-          // The public URL can be used to directly access the file via HTTP.
-          const publicUrl = `https://storage.googleapis.com/${bucket.name}/${blob.name}`;
-        });
-    
-     // 업로드 실행
-        blobStream.end(file.buffer);
-
-        if (type === 'mp4') {
-          // 동영상
-          Video.create({
-            video: `gs://${bucket.name}//${blob.name}`,
-            post_id: req.body.post_id,
-          });
-        } else if (type === 'png' || 'jpeg' || 'jpg') {
-          // 이미지
-          Image.create({
-            video: `gs://${bucket.name}/${blob.name}`,
-            post_id: req.body.post_id,
-          });
-        }
-        return type;
+      console.log('저장명' + blob.name);
+      blobStream.on('error', (err) => {
+        console.log('보내는데에 오류발생!');
+        next(err);
+      });
+      blobStream.on('finish', () => {
+        // The public URL can be used to directly access the file via HTTP.
+        const publicUrl = `https://storage.googleapis.com/${bucket.name}/${blob.name}`;
       });
 
-      res.status(200).send('ok');
+      // 업로드 실행
+      blobStream.end(file.buffer);
+
+      if (type === 'mp4') {
+        // 동영상
+        Video.create({
+          video: `gs://${bucket.name}//${blob.name}`,
+          post_id: req.body.post_id,
+        });
+      } else if (type === 'png' || 'jpeg' || 'jpg') {
+        // 이미지
+        Image.create({
+          video: `gs://${bucket.name}/${blob.name}`,
+          post_id: req.body.post_id,
+        });
+      }
+      return type;
+    });
+
+    res.status(200).send('ok');
   } catch (error) {
     console.log(err);
     next(err);
@@ -90,33 +90,31 @@ router.get('/getVideoDetail', (req, res, next) => {
   // 글 내용에 들어가있는 모든 내용 불러오기
   try {
     //const video = await Video.findOne({ post_id: req.body.post_id });
-//     // 비디오 path를 받아와서 보내기 - 임의로 gs 링크 지정
-//     const gcsUri = 'gs://swu_eyear/할머니2.mp4';
+    //     // 비디오 path를 받아와서 보내기 - 임의로 gs 링크 지정
+    //     const gcsUri = 'gs://swu_eyear/할머니2.mp4';
 
-    
-// // The path to which the file should be downloaded
-//     const bucketName = 'swu_eyear';
-//     const fileName = '1653668844562.mp4';
-//     const destFileName = `./uploads/${fileName}`;
-    
-//     // GCS에서 파일 받아서 video 객체를 받아오기
-//     async function downloadFile() {
-//       const options = {
-//         destination: destFileName,
-//       };
-    
-//       // Downloads the file - 버킷에 있는 객체 파일을 로컬에 저장
-//       await storage.bucket(bucketName).file(fileName).download(options);
-    
-//       console.log(
-//         `gs://${bucketName}/${fileName} downloaded to ${destFileName}.`
-//       );
-//     }
-    
-//     downloadFile().catch(console.error);
-    
-    res.json({ success: true, encoded});
+    // // The path to which the file should be downloaded
+    //     const bucketName = 'swu_eyear';
+    //     const fileName = '1653668844562.mp4';
+    //     const destFileName = `./uploads/${fileName}`;
 
+    //     // GCS에서 파일 받아서 video 객체를 받아오기
+    //     async function downloadFile() {
+    //       const options = {
+    //         destination: destFileName,
+    //       };
+
+    //       // Downloads the file - 버킷에 있는 객체 파일을 로컬에 저장
+    //       await storage.bucket(bucketName).file(fileName).download(options);
+
+    //       console.log(
+    //         `gs://${bucketName}/${fileName} downloaded to ${destFileName}.`
+    //       );
+    //     }
+
+    //     downloadFile().catch(console.error);
+
+    res.json({ success: true, encoded });
   } catch (err) {
     console.error(err);
     next(err);

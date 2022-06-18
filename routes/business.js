@@ -209,7 +209,6 @@ router.get('/detail/:post_id', async (req, res, next) => {
   }
 });
 
-
 router.get('/manage', (req, res) => {
   res.send('기관 환자 관리 페이지');
 });
@@ -228,7 +227,6 @@ router.get('/:pat_id/userList', async (req, res, next) => {
       _id: { $in: useridList.map((v) => v.user_id) },
     });
 
-
     // 프론트엔드에서 이해하기 쉬운 형태로 데이터 정리
     const family = familyList.map((v) => ({
       name: v.username,
@@ -242,7 +240,7 @@ router.get('/:pat_id/userList', async (req, res, next) => {
   }
 });
 
-// 기관 입장에서 환자 리스트
+// 기관 입장에서 환자 리스트 전송
 router.get('/:hos_id/patientList', async (req, res, next) => {
   if (!req) return;
   try {

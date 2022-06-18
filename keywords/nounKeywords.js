@@ -1,5 +1,5 @@
-// 받침 검사 함수 (받침이 있으면 false, 없으면 true)
-function isSingleCharacter(text) {
+// 이름의 받침 검사 함수 (받침이 있으면 false, 없으면 true)
+function isSingleCharacter(text) { // text 인자로 가족의 이름 데이터를 받아 받침 여부를 검사한다
   const strGa = 44032;
   const strHih = 55203;
 
@@ -8,6 +8,7 @@ function isSingleCharacter(text) {
   if (lastStrCode < strGa || lastStrCode > strHih) {
     return false; // 한글이 아닐 경우 false 반환
   }
+  
   return (lastStrCode - strGa) % 28 === 0;
 }
 

@@ -17,5 +17,5 @@ module.exports = () => {
       .catch((err) => done(err));
   });
 
-  local();
+  local(); // 지정해놓은 로컬 로그인 전략 실행
 };
