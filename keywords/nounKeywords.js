@@ -1,5 +1,8 @@
+// 가족 이름 데이터를 활용한 키워드 저장을 위한 파일
+
 // 이름의 받침 검사 함수 (받침이 있으면 false, 없으면 true)
-function isSingleCharacter(text) { // text 인자로 가족의 이름 데이터를 받아 받침 여부를 검사한다
+function isSingleCharacter(text) {
+  // text 인자로 가족의 이름 데이터를 받아 받침 여부를 검사한다
   const strGa = 44032;
   const strHih = 55203;
 
@@ -8,10 +11,11 @@ function isSingleCharacter(text) { // text 인자로 가족의 이름 데이터�
   if (lastStrCode < strGa || lastStrCode > strHih) {
     return false; // 한글이 아닐 경우 false 반환
   }
-  
+
   return (lastStrCode - strGa) % 28 === 0;
 }
 
+// 받침 검사 함수를 활용하여 받침 여부를 검사하고 그 결과에 따라 알맞은 조사를 붙여 반환한다.
 function addPostposition(text) {
   const word1 = text + (isSingleCharacter(text) ? '' : '이');
   const word2 = text + (isSingleCharacter(text) ? '는' : '이는');
