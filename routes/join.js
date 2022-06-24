@@ -12,10 +12,6 @@ const addPostposition = require('../keywords/nounKeywords');
 
 const router = express.Router();
 
-router.get('/business', (req, res) => {
-  res.send('기관 회원가입 페이지');
-});
-
 router.get('/done', (req, res) => {
   res.send('회원가입 완료 페이지');
 });
@@ -119,6 +115,21 @@ router.post('/user', async (req, res, next) => {
     res.status(200).send('join success');
   } catch (error) {
     next(error);
+  }
+});
+
+router.get('/business_id_check/:hid', async (req, res, next) => {
+  try {
+    const hos = await Hospital.findOne({
+      uid: req.params.hid,
+    });
+    if (hos === null) {
+      res.status(200).send('ok');
+    } else {
+      res.status(200).send('exit');
+    }
+  } catch (err) {
+    next(err);
   }
 });
 
