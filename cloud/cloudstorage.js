@@ -1,7 +1,7 @@
 // Imports the Google Cloud Video Intelligence library
 const videoIntelligence = require('@google-cloud/video-intelligence');
 const fs = require('fs');
-const { intervalToDuration } = require('date-fns');
+const { format, parseISO, intervalToDuration } = require('date-fns');
 const keyword = require('../keywords/keywords');
 const Text = require('../database/text_schema');
 const Video = require('../database/video_schema');
@@ -77,8 +77,8 @@ async function analyzeVideoTranscript(filename, user_id, patient_id) {
     }
   }
 
-  // 파이썬 파일에 보내기
-  keyword(transcription, user_id, patient_id);
+  // // 파이썬 파일에 보내기
+  // keyword(transcription, user_id, patient_id);
 
   const allSentence = annotationResults.speechTranscriptions
     .map((speechTranscription) => {
@@ -115,7 +115,7 @@ async function analyzeVideoTranscript(filename, user_id, patient_id) {
     })
     .flat();
 
-  const subtitleContent = allSentence
+  const subtitleContent = 'WEBVTT \n \n' + allSentence
     .map((sentence, index) => {
       const startTime = intervalToDuration({
         start: 0,
@@ -126,9 +126,17 @@ async function analyzeVideoTranscript(filename, user_id, patient_id) {
         end: sentence.endTime * 1000,
       });
 
+      startTime.hours = (startTime.hours<10) ? `0${startTime.hours}` : `${startTime.hours}`;
+      startTime.minutes = (startTime.minutes<10) ? `0${startTime.minutes}` : `${startTime.minutes}`;
+      startTime.seconds = (startTime.seconds<10) ? `0${startTime.seconds}` : `${startTime.seconds}`;
+
+      endTime.hours = (endTime.hours<10) ? `0${endTime.hours}` : `${endTime.hours}`;
+      endTime.minutes = (endTime.minutes<10) ? `0${endTime.minutes}` : `${endTime.minutes}`;
+      endTime.seconds = (endTime.seconds<10) ? `0${endTime.seconds}` : `${endTime.seconds}`;
+
       return `${index + 1}\n${startTime.hours}:${startTime.minutes}:${
         startTime.seconds
-      },000 --> ${endTime.hours}:${endTime.minutes}:${endTime.seconds},000\n${
+      }.000 --> ${endTime.hours}:${endTime.minutes}:${endTime.seconds}.000\n${
         sentence.sentence
       }`;
     })
