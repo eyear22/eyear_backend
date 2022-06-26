@@ -12,9 +12,8 @@ const Relation = require('../database/relationship_schema');
 
 const router = express.Router();
 const Cloud = require('../cloud/cloudstorage');
-
+const ffmpeg = require('fluent-ffmpeg');
 const storage = new Storage();
-
 const bucketName = process.env.GCLOUD_STORAGE_BUCKET;
 
 // GCS에 업로드 하는 Multer
@@ -42,8 +41,19 @@ router.post('/post', upload.array('many'), async (req, res, next) => {
       await req.files.map((file) => {
         // 여러 파일이 들어오므로 map() 사용
         const type = file.mimetype.substr(file.mimetype.lastIndexOf('/') + 1); // 파일 type
-        const blob = bucket.file(Date.now() + '.' + type);
-        console.log(file.originalname);
+        const filename = Date.now() + '.' + type;
+        if (type === 'mp4') {
+          ffmpeg(file)
+            .videoCodec('libx264')
+            .format('mp4')
+            .on('error', function(err){
+              console.log('An error occurred:' + err.message);
+            }).on('end', function(){
+              console.log("Processing finished!");
+              file.src = filename;
+            }).save(filename)
+        };
+        const blob = bucket.file(filename);
         const blobStream = blob.createWriteStream();
 
         blobStream.on('error', (err) => {
