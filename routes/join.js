@@ -11,10 +11,6 @@ const addPostposition = require('../keywords/nounKeywords');
 
 const router = express.Router();
 
-router.get('/done', (req, res) => {
-  res.send('회원가입 완료 페이지');
-});
-
 router.get('/user_id_check/:uid', async (req, res, next) => {
   try {
     const user = await User.findOne({
@@ -167,6 +163,27 @@ router.get('/email_check/:email', async (req, res, next) => {
   } catch (err) {
     res.status(402);
     next(err);
+  }
+});
+
+router.post('/business', async (req, res, next) => {
+  const { hid, password, hos_name, address, hos_number, email } = req.body;
+
+  const hash = await bcrypt.hash(password, 12);
+
+  try {
+    const hospital = await Hospital.create({
+      hid,
+      pwd: hash,
+      hos_name,
+      address,
+      hos_number,
+      email,
+    });
+
+    res.status(200).send('join success');
+  } catch (error) {
+    next(error);
   }
 });
 
