@@ -15,7 +15,7 @@ module.exports = () => {
       async (uid, password, done) => {
         try {
           let exUser;
-          exUser = await User.findOne({ uid: uid });
+          exUser = await User.findOne({ uid });
 
           if (exUser === null) {
             exUser = await Hospital.findOne({ hid: uid });
