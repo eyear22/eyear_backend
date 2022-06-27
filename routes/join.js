@@ -1,8 +1,7 @@
 const express = require('express');
 
-const passport = require('passport');
 const bcrypt = require('bcrypt');
-const { isLoggedIn, isNotLoggedIn } = require('./middlewares');
+const transPort = require('../passport/email');
 const User = require('../database/user_schema');
 const Patient = require('../database/patient_schema');
 const Hospital = require('../database/hospital_schema');
@@ -129,6 +128,44 @@ router.get('/business_id_check/:hid', async (req, res, next) => {
       res.status(200).send('exit');
     }
   } catch (err) {
+    next(err);
+  }
+});
+
+const generateRandom = (min, max) => {
+  const randomNumber = Math.floor(Math.random() * (max - min + 1)) + min;
+  return randomNumber;
+};
+
+router.get('/email_check/:email', async (req, res, next) => {
+  try {
+    const exHos = await Hospital.findOne({
+      email: req.params.email,
+    });
+
+    if (exHos === null) {
+      const number = generateRandom(111111, 999999);
+
+      const mailOptions = {
+        from: `Eyear <${process.env.MAILS_EMAIL}>`,
+        to: req.params.email,
+        subject: '회원가입 인증 메일입니다.',
+        text: `인증 코드: ${number}`,
+      };
+
+      transPort.sendMail(mailOptions, (error) => {
+        if (error) {
+          console.log(error);
+          res.status(402);
+          next(error);
+        }
+      });
+      res.status(200).send(`${number}`);
+    } else {
+      res.status(400).send('exit');
+    }
+  } catch (err) {
+    res.status(402);
     next(err);
   }
 });
