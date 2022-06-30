@@ -180,7 +180,6 @@ router.get('/detail/:post_id', async (req, res, next) => {
       videoUrl: videoLocalUrl,
       subUrl: subLocalUrl,
     };
-    console.log(result);
     res.send(result);
   } catch (err) {
     next(err);
@@ -232,6 +231,85 @@ router.get('/:hos_id/patientList', async (req, res, next) => {
 
     res.json(patientList);
   } catch (err) {
+    next(err);
+  }
+});
+
+router.get('/SearchReceive', async (req, res, next) =>{
+  const patient_number= '133';
+  const hos_Id = '629993b7560b1178ceef3318';
+
+  try{
+    const pat = await Patient.findOne({
+      pat_number: patient_number,//req.query.value,
+      hos_id: hos_Id,
+    }, {_id: 1, pat_name: 1});
+  
+    const posts = await Post.find({
+      to: pat._id,
+    }).sort({ post_id: -1 });
+  
+    const result = [];
+    for (let i = 0; i < posts.length; i++) {
+      // eslint-disable-next-line
+      const user = await User.findOne({ _id: posts[i].from });
+      if (user !== null) {
+        const createdAt = JSON.stringify(posts[i].createdAt).substr(1, 10);
+        result[i] = {
+          _id: posts[i]._id,
+          post_id: posts[i].post_id,
+          title: posts[i].title,
+          content: posts[i].content,
+          createdAt,
+          from: user.username,
+          to: posts[i].to,
+          check: posts[i].check,
+        };
+      }
+    }
+    console.log(result);
+    res.send(result);
+  }catch (err) {
+    next(err);
+  }
+});
+
+
+router.get('/SearchSend', async (req, res, next) =>{
+  const patient_number= '133';
+  const hos_Id = '629993b7560b1178ceef3318';
+
+  try{
+    const pat = await Patient.findOne({
+      pat_number: patient_number,//req.query.value,
+      hos_id: hos_Id,
+    }, {_id: 1, pat_name: 1});
+  
+    const posts = await Post.find({
+      from: pat._id,
+    }).sort({ post_id: -1 });
+  
+    const result = [];
+    for (let i = 0; i < posts.length; i++) {
+      // eslint-disable-next-line
+      const user = await User.findOne({ _id: posts[i].to });
+      if (user !== null) {
+        const createdAt = JSON.stringify(posts[i].createdAt).substr(1, 10);
+        result[i] = {
+          _id: posts[i]._id,
+          post_id: posts[i].post_id,
+          title: posts[i].title,
+          content: posts[i].content,
+          createdAt,
+          from: posts[i].from,
+          to: user.username,
+          check: posts[i].check,
+        };
+      }
+    }
+    console.log(result);
+    res.send(result);
+  }catch (err) {
     next(err);
   }
 });
