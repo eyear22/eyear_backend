@@ -1,5 +1,6 @@
 const passport = require('passport');
-const local = require('./localStrategy');
+const localUser = require('./userLocalStrategy');
+const localHospital = require('./hospitalLocalStrategy');
 const User = require('../database/user_schema');
 
 module.exports = () => {
@@ -17,5 +18,6 @@ module.exports = () => {
       .catch((err) => done(err));
   });
 
-  local();
+  localHospital();
+  localUser();
 };
