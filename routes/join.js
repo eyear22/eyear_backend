@@ -19,7 +19,7 @@ router.get('/user_id_check/:uid', async (req, res, next) => {
     if (user === null) {
       res.status(200).send('ok');
     } else {
-      res.status(200).send('exit');
+      res.status(400).send('exit');
     }
   } catch (err) {
     next(err);
@@ -34,7 +34,7 @@ router.get('/user_email_check/:email', async (req, res, next) => {
     if (user === null) {
       res.status(200).send('ok');
     } else {
-      res.status(200).send('exit');
+      res.status(400).send('exit');
     }
   } catch (err) {
     next(err);
@@ -121,7 +121,7 @@ router.get('/business_id_check/:hid', async (req, res, next) => {
     if (hos === null) {
       res.status(200).send('ok');
     } else {
-      res.status(200).send('exit');
+      res.status(400).send('exit');
     }
   } catch (err) {
     next(err);

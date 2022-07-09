@@ -29,7 +29,13 @@ const io = new Server(server);
 
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: false }));
-app.use(cors());
+app.use(
+  cors({
+    origin: 'http://localhost:3000',
+    credentials: true,
+  })
+);
+
 app.use(cookieParser(process.env.COOKIE_SECRET));
 app.use(
   session({
@@ -39,6 +45,7 @@ app.use(
     cookie: {
       httpOnly: true,
       secure: false,
+      maxAge: 1000 * 60 * 60,
     },
   })
 );
