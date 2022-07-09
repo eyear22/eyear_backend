@@ -43,7 +43,7 @@ async function analyzeVideoTranscript(filename, user_id, patient_id) {
     keyword_load.concat(commonWords.words);
   }
 
-  const gcsUri = `gs://swu_eyear/${filename}`;
+  const gcsUri = `gs://swu-eyear/${filename}`;
   const videoContext = {
     speechTranscriptionConfig: {
       sampleRateHertz: 2200,
