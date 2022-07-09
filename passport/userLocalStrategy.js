@@ -9,12 +9,12 @@ module.exports = () => {
     'local-user',
     new LocalStrategy(
       {
-        usernameField: 'uid',
+        usernameField: 'id',
         passwordField: 'password',
       },
-      async (uid, password, done) => {
+      async (id, password, done) => {
         try {
-          const exUser = await User.findOne({ uid });
+          const exUser = await User.findOne({ uid: id });
 
           if (exUser === null) {
             done(null, false, { message: 'Not exited User' });

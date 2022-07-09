@@ -9,12 +9,12 @@ module.exports = () => {
     'local-hos',
     new LocalStrategy(
       {
-        usernameField: 'hid',
+        usernameField: 'id',
         passwordField: 'password',
       },
-      async (hid, password, done) => {
+      async (id, password, done) => {
         try {
-          const exHos = await Hospital.findOne({ hid });
+          const exHos = await Hospital.findOne({ hid: id });
 
           if (exHos === null) {
             done(null, false, { message: 'Not exited Hospital' });
