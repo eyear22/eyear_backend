@@ -10,6 +10,6 @@ exports.isNotLoggedIn = (req, res, next) => {
   if (!req.isAuthenticated()) {
     next();
   } else {
-    // 로그인 한 상태입니다
+    res.status(403).send('already logined');
   }
 };
