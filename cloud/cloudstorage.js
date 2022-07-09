@@ -152,7 +152,7 @@ async function analyzeVideoTranscript(filename, user_id, patient_id) {
   });
 
   // 임시 저장한 파일을 GCS에 해당 객체 업로드
-  await storage.bucket('swu_eyear').upload(subtitlePath, {
+  await storage.bucket('swu-eyear').upload(subtitlePath, {
     destination: `subtitle/${vttname}.vtt`,
   });
 
