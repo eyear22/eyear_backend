@@ -1,25 +1,19 @@
 const express = require('express');
-const { Storage } = require('@google-cloud/storage');
 
 const router = express.Router();
 const Post = require('../database/post_schema');
 const Patient = require('../database/patient_schema');
 const Relation = require('../database/relationship_schema');
-const Video = require('../database/video_schema');
-const Text = require('../database/text_schema');
-const User = require('../database/user_schema');
-const Image = require('../database/image_schema');
 
-const storage = new Storage();
-
-const bucketName = process.env.GCLOUD_STORAGE_BUCKET;
+const { isLoggedIn } = require('./middlewares');
 
 // 개인 받은 편지 리스트
-router.get('/receive_list/:_id', async (req, res, next) => {
+router.get('/receiveList', isLoggedIn, async (req, res, next) => {
   if (!req) return;
   try {
+    const { user } = req.session.passport;
     const postList = await Post.find({
-      to: req.params._id,
+      to: user,
     }).sort({ post_id: -1 });
 
     const result = [];
@@ -48,11 +42,13 @@ router.get('/receive_list/:_id', async (req, res, next) => {
 });
 
 // 개인 보낸 편지 리스트
-router.get('/send_list/:_id', async (req, res, next) => {
+router.get('/sendList', isLoggedIn, async (req, res, next) => {
   if (!req) return;
   try {
+    const { user } = req.session.passport;
+
     const postList = await Post.find({
-      from: req.params._id,
+      from: user,
     }).sort({ post_id: -1 });
 
     const result = [];
