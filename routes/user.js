@@ -75,11 +75,13 @@ router.get('/sendList', isLoggedIn, async (req, res, next) => {
   }
 });
 
-router.get('/:user_id/patientList', async (req, res, next) => {
+router.get('/patientList', isLoggedIn, async (req, res, next) => {
   if (!req) return;
   try {
+    const { user } = req.session.passport;
+
     const relation = await Relation.find({
-      user_id: req.params.user_id,
+      user_id: user,
     });
 
     const patients = await Patient.find({
@@ -90,6 +92,7 @@ router.get('/:user_id/patientList', async (req, res, next) => {
       name: v.pat_name,
       id: v._id,
     }));
+
     res.json(patientList);
   } catch (err) {
     next(err);
