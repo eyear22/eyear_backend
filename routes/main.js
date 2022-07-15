@@ -45,39 +45,32 @@ router.post(
 
       if (req.files.length !== 0) {
         await req.files.map((file) => {
+
+          console.log('들어와?');
           // 여러 파일이 들어오므로 map() 사용
           const type = file.mimetype.substr(file.mimetype.lastIndexOf('/') + 1); // 파일 type
           const filename = Date.now() + '.' + type;
-          if (type === 'mp4') {
-            ffmpeg(file)
-              .videoCodec('libx264')
-              .format('mp4')
-              .size('1280x720')
-              .on('error', function(err){
-                console.log('An error occurred:' + err.message);
-              }).on('end', function(){
-                console.log("Processing finished!");
-                file.src = filename;
-              }).save(filename)
-          };
+
           const blob = bucket.file(filename);
           const blobStream = blob.createWriteStream();
 
           blobStream.on('error', (err) => {
             next(err);
           });
+
+          // 업로드 실행
+          blobStream.end(file.buffer);
+          
           blobStream.on('finish', () => {
             // The public URL can be used to directly access the file via HTTP.
             const publicUrl = `https://storage.googleapis.com/${bucket.name}/${blob.name}`;
 
             // 영상일 경우 자막 파일 생성
             if (type === 'mp4') {
-              Cloud(`${blob.name}`, post.to, post.from);
+              Cloud(`${blob.name}`, post.to, post.from, file);
             }
           });
 
-          // 업로드 실행
-          blobStream.end(file.buffer);
           if (type === 'mp4') {
             // 동영상
             const v = Video.create({
