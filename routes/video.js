@@ -5,7 +5,6 @@ const fs = require('fs');
 const Video = require('../database/video_schema');
 const Image = require('../database/image_schema');
 const Text = require('../database/text_schema');
-//const ffmpeg = require('fluent-ffmpeg');
 const ffmpeg = require('ffmpeg');
 
 const { Storage } = require('@google-cloud/storage');

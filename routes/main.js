@@ -52,15 +52,14 @@ router.post(
             ffmpeg(file)
               .videoCodec('libx264')
               .format('mp4')
-              .on('error', function (err) {
+              .size('1280x720')
+              .on('error', function(err){
                 console.log('An error occurred:' + err.message);
-              })
-              .on('end', function () {
-                console.log('Processing finished!');
+              }).on('end', function(){
+                console.log("Processing finished!");
                 file.src = filename;
-              })
-              .save(filename);
-          }
+              }).save(filename)
+          };
           const blob = bucket.file(filename);
           const blobStream = blob.createWriteStream();
 
