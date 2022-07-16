@@ -99,72 +99,44 @@ router.get('/patientList', isLoggedIn, async (req, res, next) => {
   }
 });
 
-// TODO: 프론트와 연결하면 인수 추가로 변경해야함
-router.get('/SearchReceive', async (req, res, next) => {
+router.get('/search', isLoggedIn, async (req, res, next) => {
   try {
-    const userId = '62a34a5fe13f9af866992c52';
-    const search = '임창정';
+    const { user } = req.session.passport;
 
-    const patient = await Relation.find({
-      user_id: userId,
+    const relations = await Relation.find({
+      user_id: user,
     });
 
-    const pats = await Patient.findOne({
-      pat_name: search, //req.query.value,
-      pat_id: patient.map((v) => v.pat_id),
+    const pats = await Patient.find({
+      pat_name: { $regex: req.query.value },
+      _id: relations.map((v) => v.pat_id),
     });
 
     const posts = await Post.find({
-      from: pats._id,
+      to: req.query.flag === '0' ? user : pats.map((v) => v._id),
+      from: req.query.flag === '0' ? pats.map((v) => v._id) : user,
     }).sort({ post_id: -1 });
 
-    const PostList = posts.map((v) => ({
-      _id: v._id,
-      post_id: v.post_id,
-      title: v.title,
-      content: v.content,
-      createdAt: JSON.stringify(v.createdAt).substr(1, 10),
-      from: pats.pat_name,
-      to: v.to,
-      check: v.check,
-    }));
-    console.log(PostList);
-    res.send(PostList);
-  } catch (err) {
-    next(err);
-  }
-});
+    const postList = [];
 
-router.get('/SearchSend', async (req, res, next) => {
-  try {
-    const userId = '62bda67c8740aea0eb93d36d';
-    const search = '임창정';
+    // eslint-disable-next-line no-restricted-syntax
+    for (const post of posts) {
+      // eslint-disable-next-line no-await-in-loop
+      const patient = await Patient.findOne({
+        _id: req.query.flag === '0' ? post.from : post.to,
+      });
+      postList.push({
+        post_id: post.post_id,
+        title: post.title,
+        content: post.content,
+        createdAt: JSON.stringify(post.createdAt).substr(1, 10),
+        from: req.query.flag === '0' ? patient.pat_name : post.from,
+        to: req.query.flag === '0' ? post.to : patient.pat_name,
+        check: post.check,
+      });
+    }
 
-    const patient = await Relation.find({
-      user_id: userId,
-    });
-
-    const pats = await Patient.findOne({
-      pat_name: search, //req.query.value,
-      pat_id: patient.map((v) => v.pat_id),
-    });
-
-    const posts = await Post.find({
-      to: pats._id,
-    }).sort({ post_id: -1 });
-
-    const PostList = posts.map((v) => ({
-      _id: v._id,
-      post_id: v.post_id,
-      title: v.title,
-      content: v.content,
-      createdAt: JSON.stringify(v.createdAt).substr(1, 10),
-      from: v.from,
-      to: pats.pat_name,
-      check: v.check,
-    }));
-    console.log(PostList);
-    res.send(PostList);
+    res.status(200).send(postList);
   } catch (err) {
     next(err);
   }
