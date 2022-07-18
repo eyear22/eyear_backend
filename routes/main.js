@@ -5,7 +5,6 @@ const { Storage } = require('@google-cloud/storage');
 const Post = require('../database/post_schema');
 const Video = require('../database/video_schema');
 const Image = require('../database/image_schema');
-const Text = require('../database/text_schema');
 const User = require('../database/user_schema');
 const Patient = require('../database/patient_schema');
 const Relation = require('../database/relationship_schema');
@@ -54,6 +53,22 @@ router.post(
           const blob = bucket.file(filename);
           const blobStream = blob.createWriteStream();
 
+          if (type === 'mp4') {
+            ffmpeg(file)
+                .videoCodec('libx264')
+                .format('mp4')
+                .size('1280x720')
+                .on('error', function(err){
+                  console.log('An error occurred:' + err.message);
+                }).on('end', function(){
+                  console.log("Processing finished!");
+                  file.src = filename;
+                }).save(filename)
+            
+            console.log('돌려졌니?');
+          };
+
+          
           blobStream.on('error', (err) => {
             next(err);
           });
@@ -62,6 +77,7 @@ router.post(
           blobStream.end(file.buffer);
           
           blobStream.on('finish', () => {
+            console.log('올리기 완료');
             // The public URL can be used to directly access the file via HTTP.
             const publicUrl = `https://storage.googleapis.com/${bucket.name}/${blob.name}`;
 

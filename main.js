@@ -14,7 +14,6 @@ const joinRouter = require('./routes/join');
 const userRouter = require('./routes/user');
 const businessRouter = require('./routes/business');
 const noticeRouter = require('./routes/notice');
-const videoRouter = require('./routes/video');
 const callRouter = require('./routes/call');
 const loginRouter = require('./routes/login');
 const askRouter = require('./routes/ask');
@@ -60,7 +59,6 @@ app.use('/user', userRouter);
 app.use('/business', businessRouter);
 app.use('/notice', noticeRouter);
 
-app.use('/video', videoRouter);
 app.use('/call', callRouter);
 app.use('/ask', askRouter);
 
