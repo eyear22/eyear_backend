@@ -102,9 +102,7 @@ router.get('/detail/:post_id', async (req, res, next) => {
       { video: 1, _id: 0, post_id: 0, video_id: 1 }
     ).populate('post_id');
 
-    let sub = [];
     let videoLocalUrl = '';
-    let subLocalUrl = '';
     if (VideoUrl.length !== 0) {
       // 비디오 로컬에 저장
       // GCS에서 파일 받아서 video 객체를 받아오기
@@ -117,24 +115,6 @@ router.get('/detail/:post_id', async (req, res, next) => {
 
       // Downloads the file - 버킷에 있는 객체 파일을 로컬에 저장
       await storage.bucket(bucketName).file(FileName).download(options);
-
-      console.log(VideoUrl[0].video);
-
-      // 자막 url 받아오기
-      sub = await Text.find({
-        vid: VideoUrl[0].video_id,
-      });
-
-      // 자막 로컬에 저장
-      const subFileName = sub[0].text;
-      subLocalUrl = `./uploads/${subFileName}`;
-      options.destination = subLocalUrl;
-
-      // Downloads the file - 버킷에 있는 객체 파일을 로컬에 저장
-      await storage
-        .bucket(bucketName)
-        .file('subtitle/' + subFileName)
-        .download(options);
     }
 
     const ImageUrl = await Image.find(
@@ -173,11 +153,9 @@ router.get('/detail/:post_id', async (req, res, next) => {
       image: ImageUrl,
       to: to,
       from: from,
-      Sub: sub,
       relation: relation,
       date: formatDate,
       videoUrl: videoLocalUrl,
-      subUrl: subLocalUrl,
     };
     res.send(result);
   } catch (err) {

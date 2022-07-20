@@ -129,7 +129,6 @@ router.get('/sendDetail/:flag/:post_id', isLoggedIn, async (req, res, next) => {
       { video: 1, _id: 0, post_id: 0, video_id: 1 }
     ).populate('post_id');
 
-    let sub = [];
     let videoLocalUrl = '';
     if (VideoUrl.length !== 0) {
       // 비디오 로컬에 저장
@@ -143,11 +142,6 @@ router.get('/sendDetail/:flag/:post_id', isLoggedIn, async (req, res, next) => {
 
       // Downloads the file - 버킷에 있는 객체 파일을 로컬에 저장
       await storage.bucket(bucketName).file(FileName).download(options);
-
-      // 자막 url 받아오기
-      sub = await Text.find({
-        vid: VideoUrl[0].video_id,
-      });
     }
 
     const ImageUrl = await Image.find(
@@ -209,7 +203,6 @@ router.get('/sendDetail/:flag/:post_id', isLoggedIn, async (req, res, next) => {
       image: ImageUrl,
       to,
       from,
-      Sub: sub,
       relation: relation,
       date: formatDate,
       videoUrl: videoLocalUrl,
@@ -249,7 +242,6 @@ router.get(
         { video: 1, _id: 0, post_id: 0, video_id: 1 }
       ).populate('post_id');
       console.log('session', req.session);
-      let sub = [];
       let videoLocalUrl = '';
       if (VideoUrl.length !== 0) {
         // 비디오 로컬에 저장
@@ -263,11 +255,6 @@ router.get(
 
         // Downloads the file - 버킷에 있는 객체 파일을 로컬에 저장
         await storage.bucket(bucketName).file(FileName).download(options);
-
-        // 자막 url 받아오기
-        sub = await Text.find({
-          vid: VideoUrl[0].video_id,
-        });
       }
 
       const ImageUrl = await Image.find(
@@ -329,7 +316,6 @@ router.get(
         image: ImageUrl,
         to,
         from,
-        Sub: sub,
         relation: relation,
         date: formatDate,
         videoUrl: videoLocalUrl,
