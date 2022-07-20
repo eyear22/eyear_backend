@@ -102,20 +102,6 @@ router.get('/detail/:post_id', async (req, res, next) => {
       { video: 1, _id: 0, post_id: 0, video_id: 1 }
     ).populate('post_id');
 
-    let videoLocalUrl = '';
-    if (VideoUrl.length !== 0) {
-      // 비디오 로컬에 저장
-      // GCS에서 파일 받아서 video 객체를 받아오기
-      // GCS에 저장된 파일 이름
-      const FileName = VideoUrl[0].video;
-      videoLocalUrl = `./uploads/${FileName}`;
-      const options = {
-        destination: videoLocalUrl,
-      };
-
-      // Downloads the file - 버킷에 있는 객체 파일을 로컬에 저장
-      await storage.bucket(bucketName).file(FileName).download(options);
-    }
 
     const ImageUrl = await Image.find(
       {
@@ -155,7 +141,6 @@ router.get('/detail/:post_id', async (req, res, next) => {
       from: from,
       relation: relation,
       date: formatDate,
-      videoUrl: videoLocalUrl,
     };
     res.send(result);
   } catch (err) {
