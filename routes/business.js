@@ -9,10 +9,11 @@ const Relation = require('../database/relationship_schema');
 const Patient = require('../database/patient_schema');
 const Text = require('../database/text_schema');
 
-
 const storage = new Storage();
 const router = express.Router();
 const bucketName = process.env.GCLOUD_STORAGE_BUCKET;
+
+const { isLoggedIn } = require('./middlewares');
 
 // 기관 받은 편지 리스트
 router.get('/receive_list/:_id', async (req, res, next) => {
@@ -186,17 +187,8 @@ router.get('/detail/:post_id', async (req, res, next) => {
   }
 });
 
-router.get('/post', (req, res) => {
-  console.log('불러오기!');
-  res.sendFile(path.join(__dirname, '..', 'upload.html'));
-});
-
-router.get('/manage', (req, res) => {
-  res.send('기관 환자 관리 페이지');
-});
-
 // 환자와 관련된 가족 리스트
-router.get('/:pat_id/userList', async (req, res, next) => {
+router.get('/:pat_id/userList', isLoggedIn, async (req, res, next) => {
   if (!req) return;
   try {
     const useridList = await Relation.find({
@@ -217,11 +209,13 @@ router.get('/:pat_id/userList', async (req, res, next) => {
   }
 });
 
-router.get('/:hos_id/patientList', async (req, res, next) => {
+router.get('/patientList', isLoggedIn, async (req, res, next) => {
   if (!req) return;
   try {
+    const hos_id = req.session.passport.user;
+
     const patients = await Patient.find({
-      hos_id: req.params.hos_id,
+      hos_id,
     });
 
     const patientList = patients.map((v) => ({
@@ -235,20 +229,23 @@ router.get('/:hos_id/patientList', async (req, res, next) => {
   }
 });
 
-router.get('/SearchReceive', async (req, res, next) =>{
-  const patient_number= '133';
+router.get('/SearchReceive', async (req, res, next) => {
+  const patient_number = '133';
   const hos_Id = '629993b7560b1178ceef3318';
 
-  try{
-    const pat = await Patient.findOne({
-      pat_number: patient_number,//req.query.value,
-      hos_id: hos_Id,
-    }, {_id: 1, pat_name: 1});
-  
+  try {
+    const pat = await Patient.findOne(
+      {
+        pat_number: patient_number, //req.query.value,
+        hos_id: hos_Id,
+      },
+      { _id: 1, pat_name: 1 }
+    );
+
     const posts = await Post.find({
       to: pat._id,
     }).sort({ post_id: -1 });
-  
+
     const result = [];
     for (let i = 0; i < posts.length; i++) {
       // eslint-disable-next-line
@@ -269,26 +266,28 @@ router.get('/SearchReceive', async (req, res, next) =>{
     }
     console.log(result);
     res.send(result);
-  }catch (err) {
+  } catch (err) {
     next(err);
   }
 });
 
-
-router.get('/SearchSend', async (req, res, next) =>{
-  const patient_number= '133';
+router.get('/SearchSend', async (req, res, next) => {
+  const patient_number = '133';
   const hos_Id = '629993b7560b1178ceef3318';
 
-  try{
-    const pat = await Patient.findOne({
-      pat_number: patient_number,//req.query.value,
-      hos_id: hos_Id,
-    }, {_id: 1, pat_name: 1});
-  
+  try {
+    const pat = await Patient.findOne(
+      {
+        pat_number: patient_number, //req.query.value,
+        hos_id: hos_Id,
+      },
+      { _id: 1, pat_name: 1 }
+    );
+
     const posts = await Post.find({
       from: pat._id,
     }).sort({ post_id: -1 });
-  
+
     const result = [];
     for (let i = 0; i < posts.length; i++) {
       // eslint-disable-next-line
@@ -309,7 +308,7 @@ router.get('/SearchSend', async (req, res, next) =>{
     }
     console.log(result);
     res.send(result);
-  }catch (err) {
+  } catch (err) {
     next(err);
   }
 });
