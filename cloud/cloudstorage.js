@@ -3,13 +3,16 @@ const videoIntelligence = require('@google-cloud/video-intelligence');
 const fs = require('fs');
 const { format, parseISO, intervalToDuration } = require('date-fns');
 const keyword = require('../keywords/keywords');
-const Text = require('../database/text_schema');
-const Video = require('../database/video_schema');
 const Keyword = require('../database/keyword_schema');
 const Commonword = require('../database/commonword_schema');
+const ffmpeg = require('fluent-ffmpeg');
 
 const { Storage } = require('@google-cloud/storage');
 const storage = new Storage();
+
+const bucket = storage.bucket(process.env.GCLOUD_STORAGE_BUCKET);
+const input_path = 'input.mp4';
+const output_path = 'output.mp4';
 
 // Creates a client
 const client = new videoIntelligence.VideoIntelligenceServiceClient();
@@ -24,7 +27,7 @@ try {
 }
 
 // DB에 해당 값 받아오려면 인수 변경해야함
-async function analyzeVideoTranscript(filename, user_id, patient_id) {
+async function analyzeVideoTranscript(filename, user_id, patient_id, file) {
   const keywordsArray = await Keyword.findOne({
     user_id: user_id,
     pat_id: patient_id,
@@ -115,7 +118,7 @@ async function analyzeVideoTranscript(filename, user_id, patient_id) {
     })
     .flat();
 
-  const subtitleContent = 'WEBVTT \n \n' + allSentence
+  const subtitleContent = allSentence
     .map((sentence, index) => {
       const startTime = intervalToDuration({
         start: 0,
@@ -136,42 +139,66 @@ async function analyzeVideoTranscript(filename, user_id, patient_id) {
 
       return `${index + 1}\n${startTime.hours}:${startTime.minutes}:${
         startTime.seconds
-      }.000 --> ${endTime.hours}:${endTime.minutes}:${endTime.seconds}.000\n${
+      },000 --> ${endTime.hours}:${endTime.minutes}:${endTime.seconds},000\n${
         sentence.sentence
       }`;
     })
     .join('\n\n');
 
   const vttname = filename.split('.')[0];
-  const subtitlePath = `./subtitle/${vttname}.vtt`;
+  const subtitlePath = `${vttname}.srt`;
 
-  // 다 생성한 vtt 파일을 로컬에 임시 저장
+  // 다 생성한 srt 파일을 로컬에 임시 저장
   await fs.writeFile(subtitlePath, subtitleContent, function (error) {
     //function(error) 추가해야 함
     console.log('write end!');
   });
 
-  // 임시 저장한 파일을 GCS에 해당 객체 업로드
-  await storage.bucket('swu-eyear').upload(subtitlePath, {
-    destination: `subtitle/${vttname}.vtt`,
+  // 영상 파일을 로컬에 받아옴
+  await fs.writeFile('input.mp4', file.buffer, function (error) {
+    //function(error) 추가해야 함
+    console.log('save input');
   });
 
-  // DB 저장 준비 - 연관된 비디오의 id를 들고옴
-  const video = await Video.findOne({
-    video: filename,
-  });
-
-  // 자막 파일 DB 생성
-  await Text.create({
-    vid: `${video.video_id}`,
-    text: `${vttname}.vtt`,
-  });
-
-  fs.unlink(subtitlePath, function (err) {
-    if (err) {
-      console.log('Error : ', err);
-    }
-  });
+  // 현재 영상 파일과 자막 파일 합치기 - 로컬
+  await ffmpeg(input_path)
+    .videoCodec('libx264')
+    .size('1280x720')
+    .outputOptions([
+      `-vf subtitles=${subtitlePath}`,
+      '-movflags faststart'
+    ])
+    .save(output_path)
+    .on('error', function(err){
+      console.log('An error occurred:' + err.message);
+    })
+    .on('end', function(){
+      console.log("Processing finished!");
+      fs.unlink(subtitlePath, function (err) {
+        if (err) {
+          console.log('Error : ', err);
+        }else{
+          console.log('삭제 완료!');
+        }
+      });
+      // 영상 파일을 로컬에 받아옴
+      fs.readFile(output_path, function (error, data) {
+        if(error){
+          console.error(error);
+        }
+        
+        const blob = bucket.file(filename);
+        const blobStream = blob.createWriteStream();
+    
+    
+        blobStream.on('error', (err) => {
+          console.error(err);
+        });
+    
+        // 업로드 실행
+        blobStream.end(data);
+      });
+    })
 }
 
 module.exports = analyzeVideoTranscript;

@@ -4,6 +4,9 @@ const router = express.Router();
 const Post = require('../database/post_schema');
 const Patient = require('../database/patient_schema');
 const Relation = require('../database/relationship_schema');
+const Video = require('../database/video_schema');
+const User = require('../database/user_schema');
+const Image = require('../database/image_schema');
 
 const { isLoggedIn } = require('./middlewares');
 
