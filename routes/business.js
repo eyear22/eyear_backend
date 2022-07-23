@@ -1,16 +1,10 @@
 const express = require('express');
-const { Storage } = require('@google-cloud/storage');
-const Video = require('../database/video_schema');
-const Image = require('../database/image_schema');
 const Post = require('../database/post_schema');
 const User = require('../database/user_schema');
 const Relation = require('../database/relationship_schema');
 const Patient = require('../database/patient_schema');
-const Text = require('../database/text_schema');
 
-const storage = new Storage();
 const router = express.Router();
-const bucketName = process.env.GCLOUD_STORAGE_BUCKET;
 
 const { isLoggedIn } = require('./middlewares');
 
