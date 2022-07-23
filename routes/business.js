@@ -15,7 +15,7 @@ const bucketName = process.env.GCLOUD_STORAGE_BUCKET;
 const { isLoggedIn } = require('./middlewares');
 
 // 기관 받은 편지 리스트
-router.get('/receiveList', async (req, res, next) => {
+router.get('/receiveList', isLoggedIn, async (req, res, next) => {
   if (!req) return;
   try {
     const patient = await Patient.findOne({ pat_number: req.query.number });
@@ -51,31 +51,36 @@ router.get('/receiveList', async (req, res, next) => {
 });
 
 // 기관 보낸 편지 리스트
-router.get('/send_list/:_id', async (req, res, next) => {
+router.get('/sendList', isLoggedIn, async (req, res, next) => {
   if (!req) return;
   try {
-    const postList = await Post.find({
-      from: req.params._id,
-    }).sort({ post_id: -1 });
-    const result = [];
-    for (let i = 0; i < postList.length; i++) {
-      // eslint-disable-next-line
-      const user = await User.findOne({ _id: postList[i].to });
-      if (user !== null) {
-        const createdAt = JSON.stringify(postList[i].createdAt).substr(1, 10);
-        result[i] = {
-          _id: postList[i]._id,
-          post_id: postList[i].post_id,
-          title: postList[i].title,
-          content: postList[i].content,
-          createdAt,
-          from: postList[i].from,
-          to: user.username,
-          check: postList[i].check,
-        };
-      }
+    const patient = await Patient.findOne({ pat_number: req.query.number });
+
+    if (patient) {
+      const postList = await Post.find({
+        from: patient._id,
+      }).sort({ post_id: -1 });
+
+      const result = await Promise.all(
+        postList.map(async (post) => {
+          const user = await User.findOne({ _id: post.to });
+          const createdAt = JSON.stringify(post.createdAt).substr(1, 10);
+          return {
+            _id: post._id,
+            post_id: post.post_id,
+            title: post.title,
+            content: post.content,
+            createdAt,
+            from: post.from,
+            to: user.username,
+            check: post.check,
+          };
+        })
+      );
+      res.status(200).send(result);
+    } else {
+      res.status(204).send('not existed patient number');
     }
-    res.send(result);
   } catch (err) {
     next(err);
   }
