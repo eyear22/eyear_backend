@@ -1,5 +1,4 @@
 const express = require('express');
-const path = require('path');
 const { Storage } = require('@google-cloud/storage');
 const Video = require('../database/video_schema');
 const Image = require('../database/image_schema');
@@ -16,33 +15,36 @@ const bucketName = process.env.GCLOUD_STORAGE_BUCKET;
 const { isLoggedIn } = require('./middlewares');
 
 // 기관 받은 편지 리스트
-router.get('/receive_list/:_id', async (req, res, next) => {
+router.get('/receiveList', async (req, res, next) => {
   if (!req) return;
   try {
-    const postList = await Post.find({
-      to: req.params._id,
-    }).sort({ post_id: -1 });
+    const patient = await Patient.findOne({ pat_number: req.query.number });
 
-    const result = [];
-    for (let i = 0; i < postList.length; i++) {
-      // eslint-disable-next-line
-      const user = await User.findOne({ _id: postList[i].from });
-      if (user !== null) {
-        const createdAt = JSON.stringify(postList[i].createdAt).substr(1, 10);
-        result[i] = {
-          _id: postList[i]._id,
-          post_id: postList[i].post_id,
-          title: postList[i].title,
-          content: postList[i].content,
-          createdAt,
-          from: user.username,
-          to: postList[i].to,
-          check: postList[i].check,
-        };
-      }
+    if (patient) {
+      const postList = await Post.find({
+        to: patient._id,
+      }).sort({ post_id: -1 });
+
+      const result = await Promise.all(
+        postList.map(async (post) => {
+          const user = await User.findOne({ _id: post.from });
+          const createdAt = JSON.stringify(post.createdAt).substr(1, 10);
+          return {
+            _id: post._id,
+            post_id: post.post_id,
+            title: post.title,
+            content: post.content,
+            createdAt,
+            from: user.username,
+            to: post.to,
+            check: post.check,
+          };
+        })
+      );
+      res.status(200).send(result);
+    } else {
+      res.status(204).send('not existed patient number');
     }
-
-    res.send(result);
   } catch (err) {
     next(err);
   }
@@ -229,7 +231,7 @@ router.get('/patientList', isLoggedIn, async (req, res, next) => {
   }
 });
 
-router.get('/SearchReceive', async (req, res, next) => {
+router.get('/SearchReceive', isLoggedIn, async (req, res, next) => {
   const patient_number = '133';
   const hos_Id = '629993b7560b1178ceef3318';
 
