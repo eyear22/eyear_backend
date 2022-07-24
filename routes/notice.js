@@ -68,4 +68,25 @@ router.patch('/:noticeId', isLoggedIn, async (req, res, next) => {
   }
 });
 
+router.delete('/:noticeId', isLoggedIn, async (req, res, next) => {
+  try {
+    const id = req.session.passport.user;
+    const { noticeId } = req.params;
+
+    const notice = await Notice.findOne({
+      notice_id: noticeId,
+      hos_id: id,
+    });
+
+    if (notice) {
+      await Notice.deleteOne(notice);
+      res.status(200).send(noticeId);
+    } else {
+      res.status(404).send('not existed notice');
+    }
+  } catch (err) {
+    next(err);
+  }
+});
+
 module.exports = router;
