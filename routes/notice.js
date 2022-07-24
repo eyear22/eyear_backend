@@ -1,16 +1,26 @@
 const express = require('express');
+
 const router = express.Router();
+const { isLoggedIn } = require('./middlewares');
+const Notice = require('../database/notice_schema');
 
-router.get('/', (req, res) => {
-  res.send('공지사항 페이지');
-});
+// 공지사항 글 작성
+router.post('/', isLoggedIn, async (req, res, next) => {
+  try {
+    const id = req.session.passport.user;
 
-router.get('/post', (req, res) => {
-  res.send('공지사항 글 작성 페이지');
-});
+    const { title, content } = req.body;
 
-router.get('/:postid', (req, res) => {
-  res.send('공지사항 글 상세 페이지');
+    const notice = await Notice.create({
+      title,
+      content,
+      hos_id: id,
+    });
+
+    res.status(200).send(`${notice.notice_id}`);
+  } catch (err) {
+    next(err);
+  }
 });
 
 module.exports = router;
