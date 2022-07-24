@@ -23,4 +23,27 @@ router.post('/', isLoggedIn, async (req, res, next) => {
   }
 });
 
+router.get('/detail/:noticeId', async (req, res, next) => {
+  try {
+    const notice = await Notice.findOne({
+      notice_id: req.params.noticeId,
+    });
+
+    if (notice) {
+      const formatDate = JSON.stringify(notice.createdAt).substr(1, 10);
+      const result = {
+        notice_id: notice.notice_id,
+        title: notice.title,
+        content: notice.content,
+        createdAt: formatDate,
+      };
+      res.status(200).send(result);
+    } else {
+      res.status(204).send('not existed notice');
+    }
+  } catch (err) {
+    next(err);
+  }
+});
+
 module.exports = router;
