@@ -46,6 +46,34 @@ router.get('/detail/:noticeId', async (req, res, next) => {
   }
 });
 
+// 병원에서 작성한 공지사항 리스트
+router.get('/all', isLoggedIn, async (req, res, next) => {
+  try {
+    const id = req.session.passport.user;
+
+    const notices = await Notice.find({
+      hos_id: id,
+    });
+
+    if (notices.length !== 0) {
+      const result = notices.map((notice) => {
+        const formatDate = JSON.stringify(notice.createdAt).substr(1, 10);
+        return {
+          notice_id: notice.notice_id,
+          title: notice.title,
+          content: notice.content,
+          createdAt: formatDate,
+        };
+      });
+      res.status(200).send(result);
+    } else {
+      res.status(204).send('empty notice list');
+    }
+  } catch (err) {
+    next(err);
+  }
+});
+
 router.patch('/:noticeId', isLoggedIn, async (req, res, next) => {
   try {
     const id = req.session.passport.user;
