@@ -297,7 +297,7 @@ router.get(
 );
 
 router.get('/logout', isLoggedIn, async (req, res) => {
-  req.logOut();
+  req.logout();
   req.session.destroy();
   res.status(200);
 });
