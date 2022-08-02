@@ -297,9 +297,13 @@ router.get(
 );
 
 router.get('/logout', isLoggedIn, async (req, res) => {
-  req.logout();
-  req.session.destroy();
-  res.status(200);
+  req.logout((err) => {
+    if (err) {
+      throw err;
+    }
+    req.session.destroy();
+    res.status(200);
+  });
 });
 
 module.exports = router;
