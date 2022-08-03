@@ -296,12 +296,13 @@ router.get(
   }
 );
 
-router.get('/logout', isLoggedIn, async (req, res) => {
+router.get('/logout', async (req, res) => {
   req.logout((err) => {
     if (err) {
       throw err;
     }
     req.session.destroy();
+    res.clearCookie('passport');
     res.status(200);
   });
 });
