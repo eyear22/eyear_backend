@@ -303,7 +303,7 @@ router.get('/logout', isLoggedIn, async (req, res) => {
     }
     req.session.destroy();
     res.clearCookie(process.env.COOKIE_SECRET);
-    res.status(200);
+    res.send('ok').status(200);
   });
 });
 
