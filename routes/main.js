@@ -44,7 +44,6 @@ router.post(
 
       if (req.files.length !== 0) {
         await req.files.map((file) => {
-
           console.log('들어와?');
           // 여러 파일이 들어오므로 map() 사용
           const type = file.mimetype.substr(file.mimetype.lastIndexOf('/') + 1); // 파일 type
@@ -55,27 +54,28 @@ router.post(
 
           if (type === 'mp4') {
             ffmpeg(file)
-                .videoCodec('libx264')
-                .format('mp4')
-                .size('1280x720')
-                .on('error', function(err){
-                  console.log('An error occurred:' + err.message);
-                }).on('end', function(){
-                  console.log("Processing finished!");
-                  file.src = filename;
-                }).save(filename)
-            
-            console.log('돌려졌니?');
-          };
+              .videoCodec('libx264')
+              .format('mp4')
+              .size('1280x720')
+              .on('error', function (err) {
+                console.log('An error occurred:' + err.message);
+              })
+              .on('end', function () {
+                console.log('Processing finished!');
+                file.src = filename;
+              })
+              .save(filename);
 
-          
+            console.log('돌려졌니?');
+          }
+
           blobStream.on('error', (err) => {
             next(err);
           });
 
           // 업로드 실행
           blobStream.end(file.buffer);
-          
+
           blobStream.on('finish', () => {
             console.log('올리기 완료');
             // The public URL can be used to directly access the file via HTTP.
@@ -286,7 +286,7 @@ router.get(
         image: ImageUrl,
         to,
         from,
-        relation: relation,
+        relation,
         date: formatDate,
       };
       res.send(result);
@@ -295,5 +295,16 @@ router.get(
     }
   }
 );
+
+router.get('/logout', isLoggedIn, async (req, res) => {
+  req.logout((err) => {
+    if (err) {
+      throw err;
+    }
+    req.session.destroy();
+    res.clearCookie(process.env.COOKIE_SECRET);
+    res.send('ok').status(200);
+  });
+});
 
 module.exports = router;
