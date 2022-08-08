@@ -143,4 +143,47 @@ router.post('/patient', isLoggedIn, async (req, res, next) => {
   }
 });
 
+router.get('/search', isLoggedIn, async (req, res, next) => {
+  try {
+    const { user } = req.session.passport;
+
+    const relations = await Relation.find({
+      hos_id: user,
+    });
+
+    const pats = await Patient.find({
+      pat_name: { $regex: req.query.value },
+      _id: relations.map((v) => v.pat_id),
+    });
+
+    const posts = await Post.find({
+      to: req.query.flag === '0' ? user : pats.map((v) => v._id),
+      from: req.query.flag === '0' ? pats.map((v) => v._id) : user,
+    }).sort({ post_id: -1 });
+
+    const postList = [];
+
+    // eslint-disable-next-line no-restricted-syntax
+    for (const post of posts) {
+      // eslint-disable-next-line no-await-in-loop
+      const patient = await Patient.findOne({
+        _id: req.query.flag === '0' ? post.from : post.to,
+      });
+      postList.push({
+        post_id: post.post_id,
+        title: post.title,
+        content: post.content,
+        createdAt: JSON.stringify(post.createdAt).substr(1, 10),
+        from: req.query.flag === '0' ? patient.pat_name : post.from,
+        to: req.query.flag === '0' ? post.to : patient.pat_name,
+        check: post.check,
+      });
+    }
+
+    res.status(200).send(postList);
+  } catch (err) {
+    next(err);
+  }
+});
+
 module.exports = router;
