@@ -122,4 +122,25 @@ router.get('/patientList', isLoggedIn, async (req, res, next) => {
   }
 });
 
+router.post('/patient', isLoggedIn, async (req, res, next) => {
+  if (!req) return;
+  try {
+    const id = req.session.passport.user;
+
+    const { pat_number, pat_name, sex, birth } = req.body;
+
+    const patient = await Patient.create({
+      pat_number,
+      pat_name,
+      sex,
+      birth,
+      hos_id: id,
+    });
+
+    res.status(200).send('ok');
+  } catch (err) {
+    next(err);
+  }
+});
+
 module.exports = router;
