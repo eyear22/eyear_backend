@@ -156,10 +156,17 @@ router.get('/search', isLoggedIn, async (req, res, next) => {
       _id: relations.map((v) => v.pat_id),
     });
 
-    const posts = await Post.find({
-      to: req.query.flag === '0' ? user : pats.map((v) => v._id),
-      from: req.query.flag === '0' ? pats.map((v) => v._id) : user,
-    }).sort({ post_id: -1 });
+    let posts;
+
+    if (req.query.flag === '0') {
+      posts = await Post.find({
+        to: pats.map((v) => v._id),
+      }).sort({ post_id: -1 });
+    } else {
+      posts = await Post.find({
+        from: pats.map((v) => v._id),
+      }).sort({ post_id: -1 });
+    }
 
     const postList = [];
 
@@ -167,8 +174,9 @@ router.get('/search', isLoggedIn, async (req, res, next) => {
     for (const post of posts) {
       // eslint-disable-next-line no-await-in-loop
       const patient = await Patient.findOne({
-        _id: req.query.flag === '0' ? post.from : post.to,
+        _id: req.query.flag === '0' ? post.to : post.from,
       });
+
       postList.push({
         post_id: post.post_id,
         title: post.title,
