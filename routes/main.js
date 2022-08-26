@@ -302,7 +302,7 @@ router.get('/logout', isLoggedIn, async (req, res) => {
       throw err;
     }
     req.session.destroy();
-    res.clearCookie(process.env.COOKIE_SECRET);
+    res.clearCookie(process.env.COOKIE_SECRET).send(req.cookies.user);
     res.send('ok').status(200);
   });
 });
