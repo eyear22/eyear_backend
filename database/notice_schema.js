@@ -23,11 +23,6 @@ const noticeSchema = new Schema({
     type: Date,
     default: new Date(),
   },
-  hos_id: {
-    type: Schema.ObjectId,
-    ref: 'Hospital',
-    required: false,
-  },
 });
 
 // AutoIncrease를 실현시키기 위해서 사용하는 코드
