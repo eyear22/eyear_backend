@@ -113,6 +113,9 @@ router.get('/patientList', isLoggedIn, async (req, res, next) => {
 
     const patientList = patients.map((v) => ({
       name: v.pat_name,
+      number: v.pat_number,
+      sex: v.sex,
+      birth: JSON.stringify(v.birth).substr(1, 10),
       id: v._id,
     }));
 
