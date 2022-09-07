@@ -1,20 +1,16 @@
 const express = require('express');
 
 const router = express.Router();
-const { isLoggedIn } = require('./middlewares');
 const Notice = require('../database/notice_schema');
 
 // 공지사항 글 작성
-router.post('/', isLoggedIn, async (req, res, next) => {
+router.post('/', async (req, res, next) => {
   try {
-    const id = req.session.passport.user;
-
     const { title, content } = req.body;
 
     const notice = await Notice.create({
       title,
       content,
-      hos_id: id,
     });
 
     res.status(200).send(`${notice.notice_id}`);
@@ -46,14 +42,10 @@ router.get('/detail/:noticeId', async (req, res, next) => {
   }
 });
 
-// 병원에서 작성한 공지사항 리스트
-router.get('/all', isLoggedIn, async (req, res, next) => {
+// 공지사항 리스트
+router.get('/all', async (req, res, next) => {
   try {
-    const id = req.session.passport.user;
-
-    const notices = await Notice.find({
-      hos_id: id,
-    });
+    const notices = await Notice.find({});
 
     if (notices.length !== 0) {
       const result = notices.map((notice) => {
@@ -74,15 +66,13 @@ router.get('/all', isLoggedIn, async (req, res, next) => {
   }
 });
 
-router.patch('/:noticeId', isLoggedIn, async (req, res, next) => {
+router.patch('/:noticeId', async (req, res, next) => {
   try {
-    const id = req.session.passport.user;
     const { title, content } = req.body;
     const { noticeId } = req.params;
 
     const notice = await Notice.findOne({
       notice_id: noticeId,
-      hos_id: id,
     });
 
     if (notice) {
@@ -96,14 +86,12 @@ router.patch('/:noticeId', isLoggedIn, async (req, res, next) => {
   }
 });
 
-router.delete('/:noticeId', isLoggedIn, async (req, res, next) => {
+router.delete('/:noticeId', async (req, res, next) => {
   try {
-    const id = req.session.passport.user;
     const { noticeId } = req.params;
 
     const notice = await Notice.findOne({
       notice_id: noticeId,
-      hos_id: id,
     });
 
     if (notice) {
