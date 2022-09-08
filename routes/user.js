@@ -168,4 +168,21 @@ router.patch('/modifyPwd', isLoggedIn, async (req, res) => {
   }
 });
 
+// 비밀번호를 몰라서 인증받고 새로 변경하는 경우
+router.patch('/newPwd', async (req, res) => {
+  if (!req) return;
+
+  const uid = req.body.userId;
+  const isExist = await User.findOne({ uid });
+
+  if (isExist) {
+    const hash = await bcrypt.hash(req.body.new_password, 12);
+    await User.updateOne(isExist, { pwd: hash });
+
+    res.status(200).send('ok');
+  } else {
+    res.status(404).send('not existed user');
+  }
+});
+
 module.exports = router;
