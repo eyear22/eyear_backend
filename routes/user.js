@@ -1,12 +1,13 @@
 const express = require('express');
 
+const bcrypt = require('bcrypt');
+
 const router = express.Router();
 const Post = require('../database/post_schema');
 const Patient = require('../database/patient_schema');
 const Relation = require('../database/relationship_schema');
-const Video = require('../database/video_schema');
+
 const User = require('../database/user_schema');
-const Image = require('../database/image_schema');
 
 const { isLoggedIn } = require('./middlewares');
 
@@ -142,6 +143,28 @@ router.get('/search', isLoggedIn, async (req, res, next) => {
     res.status(200).send(postList);
   } catch (err) {
     next(err);
+  }
+});
+
+// 로그인한 상태에서 비밀번호를 변경하고 싶은 경우
+router.patch('/modifyPwd', isLoggedIn, async (req, res) => {
+  if (!req) return;
+
+  const id = req.session.passport.user;
+  const exUser = await User.findOne({ id });
+
+  if (exUser) {
+    const result = await bcrypt.compare(req.body.password, exUser.pwd);
+    if (result) {
+      const hash = await bcrypt.hash(req.body.new_password, 12);
+      await User.updateOne(exUser, { pwd: hash });
+
+      res.status(200).send('ok');
+    } else {
+      res.status(400).send('Password Mismatch');
+    }
+  } else {
+    res.status(404).send('not existed user');
   }
 });
 
