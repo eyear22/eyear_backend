@@ -185,4 +185,23 @@ router.patch('/newPwd', async (req, res) => {
   }
 });
 
+// 아이디 찾기
+router.get('/findId', async (req, res) => {
+  if (!req) return;
+
+  const { username, email } = req.query;
+
+  const isExist = await User.findOne({ username, email });
+
+  if (isExist) {
+    const user = {
+      id: isExist.uid,
+      createdAt: JSON.stringify(isExist.createdAt).substr(1, 10),
+    };
+    res.status(200).send(user);
+  } else {
+    res.status(204).send('not existed user');
+  }
+});
+
 module.exports = router;
