@@ -10,6 +10,7 @@ const Relation = require('../database/relationship_schema');
 const User = require('../database/user_schema');
 
 const { isLoggedIn } = require('./middlewares');
+const transPort = require('../passport/email');
 
 // 개인 받은 편지 리스트
 router.get('/receiveList', isLoggedIn, async (req, res, next) => {
@@ -168,20 +169,34 @@ router.patch('/modifyPwd', isLoggedIn, async (req, res) => {
   }
 });
 
-// 비밀번호를 몰라서 인증받고 새로 변경하는 경우
-router.patch('/newPwd', async (req, res) => {
+// 비밀번호 찾기
+router.get('/newPwd', async (req, res) => {
   if (!req) return;
 
-  const uid = req.body.userId;
-  const isExist = await User.findOne({ uid });
+  const { username, email } = req.query;
 
-  if (isExist) {
-    const hash = await bcrypt.hash(req.body.new_password, 12);
-    await User.updateOne(isExist, { pwd: hash });
+  const exUser = await User.findOne({ username, email });
 
-    res.status(200).send('ok');
+  if (exUser) {
+    const newPwd = Math.random().toString(36);
+    const hash = await bcrypt.hash(newPwd, 12);
+    await User.updateOne(exUser, { pwd: hash });
+
+    const mailOptions = {
+      from: `Eyear <${process.env.MAILS_EMAIL}>`,
+      to: email,
+      subject: `[아이어] 비밀번호 변경 안내`,
+      text: `아래의 비밀번호를 사용하여 로그인 후 비밀번호를 변경해주세요. \n[임시 비밀번호] ${newPwd}`,
+    };
+
+    transPort.sendMail(mailOptions, (error) => {
+      res.status(402).send('send mail error');
+      throw error;
+    });
+
+    res.status(200).send('success');
   } else {
-    res.status(404).send('not existed user');
+    res.status(204).send('not existed user');
   }
 });
 
