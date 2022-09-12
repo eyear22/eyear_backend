@@ -45,7 +45,7 @@ router.get('/detail/:noticeId', async (req, res, next) => {
 // 공지사항 리스트
 router.get('/all', async (req, res, next) => {
   try {
-    const notices = await Notice.find({});
+    const notices = await Notice.find({}).sort({ _id: -1 });
 
     if (notices.length !== 0) {
       const result = notices.map((notice) => {
