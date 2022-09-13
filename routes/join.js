@@ -31,12 +31,17 @@ router.get('/id_check/:id', async (req, res, next) => {
   }
 });
 
-router.get('/user_email_check/:email', async (req, res, next) => {
+router.get('/email_check/:email', async (req, res, next) => {
   try {
     const user = await User.findOne({
       email: req.params.email,
     });
-    if (user === null) {
+
+    const hos = await Hospital.findOne({
+      email: req.params.email,
+    });
+
+    if (user === null && hos === null) {
       res.status(200).send('ok');
     } else {
       res.status(400).send('exit');
