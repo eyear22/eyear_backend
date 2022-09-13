@@ -1,14 +1,16 @@
 const express = require('express');
 
+const bcrypt = require('bcrypt');
+
 const router = express.Router();
 const Post = require('../database/post_schema');
 const Patient = require('../database/patient_schema');
 const Relation = require('../database/relationship_schema');
-const Video = require('../database/video_schema');
+
 const User = require('../database/user_schema');
-const Image = require('../database/image_schema');
 
 const { isLoggedIn } = require('./middlewares');
+const transPort = require('../passport/email');
 
 // 개인 받은 편지 리스트
 router.get('/receiveList', isLoggedIn, async (req, res, next) => {
@@ -142,6 +144,78 @@ router.get('/search', isLoggedIn, async (req, res, next) => {
     res.status(200).send(postList);
   } catch (err) {
     next(err);
+  }
+});
+
+// 로그인한 상태에서 비밀번호를 변경하고 싶은 경우
+router.patch('/modifyPwd', isLoggedIn, async (req, res) => {
+  if (!req) return;
+
+  const id = req.session.passport.user;
+  const exUser = await User.findOne({ id });
+
+  if (exUser) {
+    const result = await bcrypt.compare(req.body.password, exUser.pwd);
+    if (result) {
+      const hash = await bcrypt.hash(req.body.new_password, 12);
+      await User.updateOne(exUser, { pwd: hash });
+
+      res.status(200).send('ok');
+    } else {
+      res.status(400).send('Password Mismatch');
+    }
+  } else {
+    res.status(404).send('not existed user');
+  }
+});
+
+// 비밀번호 찾기
+router.get('/newPwd', async (req, res) => {
+  if (!req) return;
+
+  const { username, email } = req.query;
+
+  const exUser = await User.findOne({ username, email });
+
+  if (exUser) {
+    const newPwd = Math.random().toString(36);
+    const hash = await bcrypt.hash(newPwd, 12);
+    await User.updateOne(exUser, { pwd: hash });
+
+    const mailOptions = {
+      from: `Eyear <${process.env.MAILS_EMAIL}>`,
+      to: email,
+      subject: `[아이어] 비밀번호 변경 안내`,
+      text: `아래의 비밀번호를 사용하여 로그인 후 비밀번호를 변경해주세요. \n[임시 비밀번호] ${newPwd}`,
+    };
+
+    transPort.sendMail(mailOptions, (error) => {
+      res.status(402).send('send mail error');
+      throw error;
+    });
+
+    res.status(200).send('success');
+  } else {
+    res.status(204).send('not existed user');
+  }
+});
+
+// 아이디 찾기
+router.get('/findId', async (req, res) => {
+  if (!req) return;
+
+  const { username, email } = req.query;
+
+  const isExist = await User.findOne({ username, email });
+
+  if (isExist) {
+    const user = {
+      id: isExist.uid,
+      createdAt: JSON.stringify(isExist.createdAt).substr(1, 10),
+    };
+    res.status(200).send(user);
+  } else {
+    res.status(204).send('not existed user');
   }
 });
 
