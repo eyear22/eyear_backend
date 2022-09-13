@@ -11,12 +11,17 @@ const addPostposition = require('../keywords/nounKeywords');
 
 const router = express.Router();
 
-router.get('/user_id_check/:uid', async (req, res, next) => {
+router.get('/id_check/:id', async (req, res, next) => {
   try {
     const user = await User.findOne({
-      uid: req.params.uid,
+      uid: req.params.id,
     });
-    if (user === null) {
+
+    const hos = await Hospital.findOne({
+      hid: req.params.id,
+    });
+
+    if (user === null && hos === null) {
       res.status(200).send('ok');
     } else {
       res.status(400).send('exit');
@@ -26,12 +31,17 @@ router.get('/user_id_check/:uid', async (req, res, next) => {
   }
 });
 
-router.get('/user_email_check/:email', async (req, res, next) => {
+router.get('/email_check/:email', async (req, res, next) => {
   try {
     const user = await User.findOne({
       email: req.params.email,
     });
-    if (user === null) {
+
+    const hos = await Hospital.findOne({
+      email: req.params.email,
+    });
+
+    if (user === null && hos === null) {
       res.status(200).send('ok');
     } else {
       res.status(400).send('exit');
@@ -110,21 +120,6 @@ router.post('/user', async (req, res, next) => {
     res.status(200).send('join success');
   } catch (error) {
     next(error);
-  }
-});
-
-router.get('/business_id_check/:hid', async (req, res, next) => {
-  try {
-    const hos = await Hospital.findOne({
-      hid: req.params.hid,
-    });
-    if (hos === null) {
-      res.status(200).send('ok');
-    } else {
-      res.status(400).send('exit');
-    }
-  } catch (err) {
-    next(err);
   }
 });
 
