@@ -31,7 +31,7 @@ router.get('/id_check/:id', async (req, res, next) => {
   }
 });
 
-router.get('/email_check/:email', async (req, res, next) => {
+router.get('/user_email_check/:email', async (req, res, next) => {
   try {
     const user = await User.findOne({
       email: req.params.email,
@@ -130,11 +130,12 @@ const generateRandom = (min, max) => {
 
 router.get('/email_check/:email', async (req, res, next) => {
   try {
+    const exUser = await User.findOne({ email: req.params.email });
     const exHos = await Hospital.findOne({
       email: req.params.email,
     });
 
-    if (exHos === null) {
+    if (exHos === null && exUser === null) {
       const number = generateRandom(111111, 999999);
 
       const mailOptions = {
