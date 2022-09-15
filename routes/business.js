@@ -252,4 +252,23 @@ router.get('/newPwd', async (req, res) => {
   }
 });
 
+// 아이디 찾기
+router.get('/findId', async (req, res) => {
+  if (!req) return;
+
+  const { hos_name, email } = req.query;
+
+  const isExist = await Hospital.findOne({ hos_name, email });
+
+  if (isExist) {
+    const hospital = {
+      id: isExist.hid,
+      createdAt: JSON.stringify(isExist.createdAt).substr(1, 10),
+    };
+    res.status(200).send(hospital);
+  } else {
+    res.status(204).send('not existed user');
+  }
+});
+
 module.exports = router;
