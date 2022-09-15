@@ -7,7 +7,7 @@ const Patient = require('../database/patient_schema');
 const Hospital = require('../database/hospital_schema');
 
 const router = express.Router();
-
+const transPort = require('../passport/email');
 const { isLoggedIn } = require('./middlewares');
 
 // 기관 받은 편지 리스트
@@ -218,6 +218,37 @@ router.patch('/modifyPwd', isLoggedIn, async (req, res) => {
     }
   } else {
     res.status(404).send('not existed hospital');
+  }
+});
+
+// 비밀번호 찾기
+router.get('/newPwd', async (req, res) => {
+  if (!req) return;
+
+  const { hos_name, email } = req.query;
+
+  const exHos = await Hospital.findOne({ hos_name, email });
+
+  if (exHos) {
+    const newPwd = Math.random().toString(36);
+    const hash = await bcrypt.hash(newPwd, 12);
+    await Hospital.updateOne(exHos, { pwd: hash });
+
+    const mailOptions = {
+      from: `Eyear <${process.env.MAILS_EMAIL}>`,
+      to: email,
+      subject: `[아이어] 비밀번호 변경 안내`,
+      text: `아래의 비밀번호를 사용하여 로그인 후 비밀번호를 변경해주세요. \n[임시 비밀번호] ${newPwd}`,
+    };
+
+    transPort.sendMail(mailOptions, (error) => {
+      res.status(402).send('send mail error');
+      throw error;
+    });
+
+    res.status(200).send('success');
+  } else {
+    res.status(204).send('not existed hospital');
   }
 });
 
