@@ -1,11 +1,13 @@
 const express = require('express');
+const bcrypt = require('bcrypt');
 const Post = require('../database/post_schema');
 const User = require('../database/user_schema');
 const Relation = require('../database/relationship_schema');
 const Patient = require('../database/patient_schema');
+const Hospital = require('../database/hospital_schema');
 
 const router = express.Router();
-
+const transPort = require('../passport/email');
 const { isLoggedIn } = require('./middlewares');
 
 // 기관 받은 편지 리스트
@@ -194,6 +196,78 @@ router.get('/search', isLoggedIn, async (req, res, next) => {
     res.status(200).send(postList);
   } catch (err) {
     next(err);
+  }
+});
+
+// 로그인한 상태에서 비밀번호를 변경하고 싶은 경우
+router.patch('/modifyPwd', isLoggedIn, async (req, res) => {
+  if (!req) return;
+
+  const id = req.session.passport.user;
+  const exHos = await Hospital.findOne({ id });
+
+  if (exHos) {
+    const result = await bcrypt.compare(req.body.password, exHos.pwd);
+    if (result) {
+      const hash = await bcrypt.hash(req.body.new_password, 12);
+      await User.updateOne(exHos, { pwd: hash });
+
+      res.status(200).send('ok');
+    } else {
+      res.status(400).send('Password Mismatch');
+    }
+  } else {
+    res.status(404).send('not existed hospital');
+  }
+});
+
+// 비밀번호 찾기
+router.get('/newPwd', async (req, res) => {
+  if (!req) return;
+
+  const { hos_name, email } = req.query;
+
+  const exHos = await Hospital.findOne({ hos_name, email });
+
+  if (exHos) {
+    const newPwd = Math.random().toString(36);
+    const hash = await bcrypt.hash(newPwd, 12);
+    await Hospital.updateOne(exHos, { pwd: hash });
+
+    const mailOptions = {
+      from: `Eyear <${process.env.MAILS_EMAIL}>`,
+      to: email,
+      subject: `[아이어] 비밀번호 변경 안내`,
+      text: `아래의 비밀번호를 사용하여 로그인 후 비밀번호를 변경해주세요. \n[임시 비밀번호] ${newPwd}`,
+    };
+
+    transPort.sendMail(mailOptions, (error) => {
+      res.status(402).send('send mail error');
+      throw error;
+    });
+
+    res.status(200).send('success');
+  } else {
+    res.status(204).send('not existed hospital');
+  }
+});
+
+// 아이디 찾기
+router.get('/findId', async (req, res) => {
+  if (!req) return;
+
+  const { hos_name, email } = req.query;
+
+  const isExist = await Hospital.findOne({ hos_name, email });
+
+  if (isExist) {
+    const hospital = {
+      id: isExist.hid,
+      createdAt: JSON.stringify(isExist.createdAt).substr(1, 10),
+    };
+    res.status(200).send(hospital);
+  } else {
+    res.status(204).send('not existed user');
   }
 });
 
