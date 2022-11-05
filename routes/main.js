@@ -65,8 +65,6 @@ router.post(
                 file.src = filename;
               })
               .save(filename);
-
-            console.log('돌려졌니?');
           }
 
           blobStream.on('error', (err) => {
@@ -77,7 +75,6 @@ router.post(
           blobStream.end(file.buffer);
 
           blobStream.on('finish', () => {
-            console.log('올리기 완료');
             // The public URL can be used to directly access the file via HTTP.
             const publicUrl = `https://storage.googleapis.com/${bucket.name}/${blob.name}`;
 

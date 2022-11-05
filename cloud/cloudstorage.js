@@ -80,6 +80,26 @@ async function analyzeVideoTranscript(filename, user_id, patient_id, file) {
     }
   }
 
+  // 추출된 STT 데이터 텍스트 파일 생성
+  const textName = `${Date.now()}.txt`;
+  const textPath = `./subtitle/${textName}`;
+
+  // 다 생성한 srt 파일을 로컬에 임시 저장
+  await fs.writeFile(textPath, transcription, function (error) {
+    //function(error) 추가해야 함
+    console.log('write end!');
+  });
+
+  await storage.bucket('swu-eyear').upload(textPath, {
+    destination: `${textName}`,
+  });
+
+  await fs.unlink(textPath, function (err) {
+    if (err) {
+      console.log('Error : ', err);
+    }
+  });
+
   // // 파이썬 파일에 보내기
   // keyword(transcription, user_id, patient_id);
 
@@ -129,13 +149,23 @@ async function analyzeVideoTranscript(filename, user_id, patient_id, file) {
         end: sentence.endTime * 1000,
       });
 
-      startTime.hours = (startTime.hours<10) ? `0${startTime.hours}` : `${startTime.hours}`;
-      startTime.minutes = (startTime.minutes<10) ? `0${startTime.minutes}` : `${startTime.minutes}`;
-      startTime.seconds = (startTime.seconds<10) ? `0${startTime.seconds}` : `${startTime.seconds}`;
+      startTime.hours =
+        startTime.hours < 10 ? `0${startTime.hours}` : `${startTime.hours}`;
+      startTime.minutes =
+        startTime.minutes < 10
+          ? `0${startTime.minutes}`
+          : `${startTime.minutes}`;
+      startTime.seconds =
+        startTime.seconds < 10
+          ? `0${startTime.seconds}`
+          : `${startTime.seconds}`;
 
-      endTime.hours = (endTime.hours<10) ? `0${endTime.hours}` : `${endTime.hours}`;
-      endTime.minutes = (endTime.minutes<10) ? `0${endTime.minutes}` : `${endTime.minutes}`;
-      endTime.seconds = (endTime.seconds<10) ? `0${endTime.seconds}` : `${endTime.seconds}`;
+      endTime.hours =
+        endTime.hours < 10 ? `0${endTime.hours}` : `${endTime.hours}`;
+      endTime.minutes =
+        endTime.minutes < 10 ? `0${endTime.minutes}` : `${endTime.minutes}`;
+      endTime.seconds =
+        endTime.seconds < 10 ? `0${endTime.seconds}` : `${endTime.seconds}`;
 
       return `${index + 1}\n${startTime.hours}:${startTime.minutes}:${
         startTime.seconds
@@ -164,41 +194,37 @@ async function analyzeVideoTranscript(filename, user_id, patient_id, file) {
   await ffmpeg(input_path)
     .videoCodec('libx264')
     .size('1280x720')
-    .outputOptions([
-      `-vf subtitles=${subtitlePath}`,
-      '-movflags faststart'
-    ])
+    .outputOptions([`-vf subtitles=${subtitlePath}`, '-movflags faststart'])
     .save(output_path)
-    .on('error', function(err){
+    .on('error', function (err) {
       console.log('An error occurred:' + err.message);
     })
-    .on('end', function(){
-      console.log("Processing finished!");
+    .on('end', function () {
+      console.log('Processing finished!');
       fs.unlink(subtitlePath, function (err) {
         if (err) {
           console.log('Error : ', err);
-        }else{
+        } else {
           console.log('삭제 완료!');
         }
       });
       // 영상 파일을 로컬에 받아옴
       fs.readFile(output_path, function (error, data) {
-        if(error){
+        if (error) {
           console.error(error);
         }
-        
+
         const blob = bucket.file(filename);
         const blobStream = blob.createWriteStream();
-    
-    
+
         blobStream.on('error', (err) => {
           console.error(err);
         });
-    
+
         // 업로드 실행
         blobStream.end(data);
       });
-    })
+    });
 }
 
 module.exports = analyzeVideoTranscript;
